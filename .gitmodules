@@ -1,0 +1,3 @@
+[submodule "Silverback/Engine"]
+	path = Silverback/Engine
+	url = https://github.com/SilverbackSoPra/Engine
