@@ -1,4 +1,3 @@
-.git
-Silverback/bin/
-Silverback/obj/
-**/*.vspx
+obj/
+bin/
+.vs/
