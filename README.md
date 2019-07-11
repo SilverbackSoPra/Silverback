@@ -1,5 +1,7 @@
 # Silverback - The Game
 
+**Caution this is not the final version, as seen on some of the screenshots.**
+
 This Game is developed as a part of the Softwarepraktikum,
 a course at the University of Freiburg.
 
@@ -11,14 +13,20 @@ All code belongs to the members of Group 3 - Softwarepraktikum, Univeristy of Fr
 
 ##  Images
 
-### The main screen
-![](https://i.imgur.com/oZTvoAS.png)
+### Ingame Footage of the final version
+![](./assets/Silverback_1.png)
+![](./assets/Silverback_2.png)
+![](./assets/Silverback_3.png)
+![](./assets/Silverback_4.png)
 
-### Game
-![](https://i.imgur.com/vaSBOvT.png)
+### The main screen
+![](./assets/5.png)
+
+### Game (early version)
+![](./assets/6.png)
 
 ### Build in leveleditor
-![](https://i.imgur.com/toc76NZ.png)
+![](./assets/7.png)
 
 ### Leveleditorsettings
-![](https://i.imgur.com/e2oNwR7.png)
+![](./assets/8.png)
