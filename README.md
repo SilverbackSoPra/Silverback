@@ -25,7 +25,7 @@ All code belongs to the members of Group 3 - Softwarepraktikum, Univeristy of Fr
 ### Game (early version)
 ![](./assets/6.png)
 
-### Build in leveleditor
+### Built-in leveleditor
 ![](./assets/7.png)
 
 ### Leveleditorsettings
