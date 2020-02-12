@@ -5,7 +5,7 @@ a course at the University of Freiburg.
 
 This game may contain bugs.
 
-All code belongs to the members of Group 3 - Softwarepraktikum, Univeristy of Freiburg 
+All code belongs to the members of Group 3 - Softwarepraktikum, University of Freiburg 
 
 ##  Images
 
