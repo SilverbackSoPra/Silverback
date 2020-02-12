@@ -122,7 +122,7 @@ namespace LevelEditor.Engine.Renderer
             mShader.mGrassTexture = mGrassTexture;
 
             mShader.mFogColor = scene.mFog.mColor;
-            mShader.mFogDistance = scene.mFog.mDistance;
+            mShader.mFogDistance = Math.Min(scene.mFog.mDistance, camera.mFarPlane - 10.0f);
 
             // We calculate the light on the CPU because the normal is always upfacing, which means the diffuse color will always be the same
             var grassNormal = Vector3.Normalize(Vector3.TransformNormal(Vector3.Up, camera.mViewMatrix));

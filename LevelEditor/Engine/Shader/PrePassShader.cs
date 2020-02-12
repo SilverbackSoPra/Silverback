@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace LevelEditor.Engine.Shader
 {
-    sealed class PrePassShader : Shader
+    internal sealed class PrePassShader : Shader
     {
 
         private readonly EffectParameter mModelMatrixParameter;

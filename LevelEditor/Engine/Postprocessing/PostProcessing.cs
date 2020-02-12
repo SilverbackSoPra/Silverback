@@ -4,7 +4,7 @@ namespace LevelEditor.Engine.Postprocessing
     /// <summary>
     /// Represents the post-processing applied to a scene.
     /// </summary>
-    internal sealed class PostProcessing
+    public sealed class PostProcessing
     {
 
         public readonly Fxaa mFxaa;

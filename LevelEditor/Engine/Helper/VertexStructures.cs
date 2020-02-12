@@ -29,7 +29,7 @@ namespace LevelEditor.Engine.Helper
     /// <summary>
     /// 
     /// </summary>
-    internal struct VertexPositionTextureSkinned
+    public struct VertexPositionTextureSkinned
     {
 
         public Vector3 Position;
@@ -46,7 +46,7 @@ namespace LevelEditor.Engine.Helper
 
     }
 
-    internal struct GrassInstancing
+    public struct GrassInstancing
     {
 
         public Vector3 Position;

@@ -26,11 +26,11 @@ namespace LevelEditor.UIv2.Components
                 var val = 0.0f;
                 // Get the amount of possible values
                 // E.g. 0 to 100 --> 101 possible values (100 - 0 + 1)
-                val = (mRangeEnd - mRangeStart);
+                val = mRangeEnd - mRangeStart;
                 // Get the x value per rangepoint
                 val = (mSize.Width - mSizePoint.Width) / val;
                 // 
-                return ((mSizePoint.X - mSize.X) / val) + mRangeStart;
+                return (mSizePoint.X - mSize.X) / val + mRangeStart;
             }
             set
             {
@@ -228,7 +228,7 @@ namespace LevelEditor.UIv2.Components
 
             mSize = size;
 
-            mSizePoint.X = mSize.X + (int)Math.Round(((RangeValue - mRangeStart) * ((mSize.Width - mSizePoint.Width) / (float)(mRangeEnd - mRangeStart))));
+            mSizePoint.X = mSize.X + (int)Math.Round((RangeValue - mRangeStart) * ((mSize.Width - mSizePoint.Width) / (float)(mRangeEnd - mRangeStart)));
             mSizePoint.Y = mSize.Y + mSize.Height* 1 / 8;
             mSizePoint.Width = mSize.Height * 3 / 4;
             mSizePoint.Height = mSize.Height * 3 / 4;
@@ -253,7 +253,7 @@ namespace LevelEditor.UIv2.Components
         public void CheckRegisteredEvents()
         {
             // Check if the mouse is inside
-            if ((mSize.X + mSize.Width) < (mSizePoint.X + mSizePoint.Width))
+            if (mSize.X + mSize.Width < mSizePoint.X + mSizePoint.Width)
             {
                 RangeValue = mSize.X + mSize.Width - mSizePoint.Width;
                 return;
@@ -305,7 +305,7 @@ namespace LevelEditor.UIv2.Components
 
         private void SetValue(float value)
         {
-            RangeValue = mSize.X + ((value - mRangeStart) * ((mSize.Width - mSizePoint.Width) / (float)(mRangeEnd - mRangeStart)));
+            RangeValue = mSize.X + (value - mRangeStart) * ((mSize.Width - mSizePoint.Width) / (float)(mRangeEnd - mRangeStart));
         }
     }
 }

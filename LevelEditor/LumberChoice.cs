@@ -8,6 +8,18 @@ namespace LevelEditor
         private static double[] sApes = new double[4] {0.25d,0.25d,0.25d,0.25d};
         private static double[,] sWeights = new double[Hidden, sApes.Length+1];
         private static double sKillerRatio = 0.5d;
+        private static int[] mNumApes = new int[4] {0,0,0,0};
+        private static bool isInitialized = false;
+
+        /// <summary>
+        /// Use this to tell the AI that you added a single SubApe.
+        /// </summary>
+        /// <param name="index">1 for chimp, 2 for orang, 3 for capucin, 4 for gibbon</param>
+        public static void AddApe(int index)
+        {
+            mNumApes[index-1]++;
+            SetApes(mNumApes[0],mNumApes[1],mNumApes[2],mNumApes[3]);
+        }
 
         /// <summary>
         /// Use this to tell the AI how many of each type of SubApe the player has, so it can react accordingly.
@@ -25,6 +37,15 @@ namespace LevelEditor
 
         private static void SetRatio()
         {
+            if (!isInitialized && Hidden==3 && sApes.Length==4)
+            {
+                sWeights = new double[,]
+                {
+                    {-2.0d, 1.0d, -1.0d, 2.0d, 4.0d},
+                    {2.0d, 1.0d, -2.0d, -1.0d, -2.0d},
+                    {1.0d, -2.0d, 2.0d, 1.0d, -1.0d}
+                };
+            } 
             var outActivation = 0.0d;
             double[] hiddenNeurons = new double[Hidden];
             for (var i = 0; i < Hidden; i++)

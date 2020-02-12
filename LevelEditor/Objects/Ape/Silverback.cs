@@ -6,165 +6,158 @@ using LevelEditor.Engine;
 using LevelEditor.Engine.Helper;
 using LevelEditor.Screen;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
+using System.Xml.Serialization;
+using LevelEditor.Sound;
 
 namespace LevelEditor.Objects.Ape
 {
-    sealed class Silverback : IMoveable, IAttacker, IEscape, ICollide, IActor, IGameObject
+    [Serializable()]
+    public class Silverback : IMoveable, IAttacker, IEscape, ICollide, IActor, IGameObject, ISerializable, ILoader, ISaver
     {
         public int HP { get; set; }
+        public bool IsHealer { get; set; }
         public bool IsApe { get; set; }
         public bool IsAlive { get; set; }
-
-        private Vector2 mRotation;
-
+        public bool IsMoving { get; set; }
+        [XmlIgnore]
         public Actor Actor { get; set; }
-        public void Update(GameTime gameTime)
-        {
-        }
-
         public string Name { get; set; }
+        public bool IsCrazy { get; set; }
         public bool HasSoundEmitter { get; set; }
-        public string Save()
-        {
-            return "";
-        }
+        public Sound.AudioSource mSoundEmitter;
 
-        public bool Load()
-        {
-            return false;
-        }
 
         public const float Range = 10.0f;
         public const float InnerRange = 8.0f;
 
-        private static Random mRandom = new Random();
-        private Scene mScene;
-        private int mDamage;
-        private int mMaxHP;
-        private int mRange;
-        private int mCoolDown;
-        private int mTimeElapsed;
-        // private int mCoolDown;
+        public static Random mRandom = new Random();
+        [XmlIgnore]
+        public Scene mScene;
+        public int mDamage;
+        public int mMaxHP;
+        public int mRange;
+        public int mCoolDown;
+        public int mTimeElapsed;
+        // public int mCoolDown;
 
-        private const float Speed = 0.0040f;
-        private const int MaxWalkingRangeValue = 128;
-        private Vector3 mTargetPosition;
-        private Vector2 mDirection;
-        private Vector2 mPlannedDirection;
-        private Vector2 mCurrentDirection;
+        public const float Speed = 0.0040f;
+        public const int MaxWalkingRangeValue = 128;
+        public Vector3 mTargetPosition;
+        public Vector2 mDirection;
+        public Vector2 mRotation;
+        public Vector2 mPlannedDirection;
+        public Vector2 mCurrentDirection;
 
-        private readonly Terrain mTerrain;
-        private readonly Silverback mSilverback;
-        private bool mIsSilverbackTarget;
-        private Vector3 mLastSilverbackLocation;
-        private int mTargetCoolDown;
-        private Actor mClosestFiend;
-        private float mClosestAngle;
-        private List<Actor> mInRangeActors;
-        private bool mIsAttacking;
+        public readonly Terrain mTerrain;
+        public readonly Silverback mSilverback;
+        public bool mIsSilverbackTarget;
+        public Vector3 mLastSilverbackLocation;
+        public int mTargetCoolDown;
+        [XmlIgnore]
+        public Actor mClosestFiend;
+        public float mClosestAngle;
+        [XmlIgnore]
+        public List<Actor> mInRangeActors;
+        public bool mIsAttacking;
+        private bool mHasAttacked;
 
-        private ActorBatch mActorBatch;
+        [XmlIgnore]
+        public ActorBatch mActorBatch;
 
-        private QuadTree<Actor> mQuadTree;
-        private bool mIsAlive;
+        [XmlIgnore]
+        public QuadTree<Actor> mQuadTree;
+        public bool mIsAlive;
 
-        private bool mIsAttacked;
-        private const int mHighlightTime = 300;
-        private int mTimeHighlighted;
+        public bool mIsAttacked;
+        public const int mHighlightTime = 300;
+        public int mTimeHighlighted;
 
 
-        private bool mInRangeMovement = false;
-        private float mInnerRange;
-        private float mOuterRange;
-        private Vector3 mHutPosition;
+        public bool mInRangeMovement = false;
+        public float mInnerRange;
+        public float mOuterRange;
+        public Vector3 mHutPosition;
 
-        private bool mAttacking;
+        public bool mAttacking;
 
-        public Silverback(Vector3 silverbackLocation, Vector2 silverbackRotation)
+        public Silverback(Vector3 silverbackLocation, Vector2 silverbackRotation, Mesh mesh)
         {
-            IsApe = true;
-
-            //HP = 5000;
-            HP = 50;
-            mDamage = 25;
-            mCoolDown = 2;
+            HP = 300;
+            mMaxHP = HP;
+            mDamage = 12;
+            mCoolDown = 650;
+            mRange = 1;
             IsAlive = true;
+            IsHealer = false;
             IsApe = true;
             mIsAttacking = false;
+
+            Actor = new Actor(mesh, this) { ModelMatrix = Matrix.CreateTranslation(silverbackLocation) };
 
             mRotation = silverbackRotation;
         }
 
-        public Silverback(int hp, int damage, int cooldown)
+        public Silverback(SerializationInfo info, StreamingContext context)
         {
-            HP = hp;
-            mDamage = damage;
-            mCoolDown = cooldown;
-            IsApe = true;
-            mIsAttacking = false;
+            IsApe = (bool)info.GetValue("IsApe", typeof(bool));
+            HP = (int)info.GetValue("HP", typeof(int));
+            mDamage = (int)info.GetValue("mDamage", typeof(int));
+            mCoolDown = (int)info.GetValue("mCoolDown", typeof(int));
+            mRange = (int)info.GetValue("mRange", typeof(int));
+            mIsAlive = (bool)info.GetValue("mIsAlive", typeof(bool));
+            mIsAttacking = (bool)info.GetValue("mIsAttacking", typeof(bool));
+            mIsAttacked = (bool)info.GetValue("mIsAttacked", typeof(bool));
         }
 
-        public void Attack()
+        public Silverback()
+        { }
+
+        public bool Update(Terrain terrain, Camera camera, CameraHandler handler, Scene scene, GameTime gameTime)
         {
 
-            if (mIsAttacking)
+            //mQuadTree.Remove(Actor, Actor.mBoundingRectangle.GetAxisAlignedRectangle(1));
+
+            //scene.mVisibilityGraph.GetPath(camera.mLocation, new Vector3(20.0f));
+
+            if (mIsAttacked)
+            {
+                mTimeHighlighted += gameTime.ElapsedGameTime.Milliseconds;
+                if (mTimeHighlighted > mHighlightTime)
+                {
+                    mTimeHighlighted = 0;
+                    mIsAttacked = false;
+                    Actor.Color = new Vector3(1.0f, 1.0f, 1.0f);
+                }
+            }
+
+            mTimeElapsed += gameTime.ElapsedGameTime.Milliseconds;
+            if (mTimeElapsed >= mCoolDown)
             {
                 mIsAttacking = false;
-                Actor.mAnimator.PlayAnimation("idle", true, 500);
 
+                mTimeElapsed = 0;
+                mInRangeActors = scene.mQuadTree.QueryRectangle(Actor.mBoundingRectangle.GetAxisAlignedRectangle(mRange));
+                if (mInRangeActors.Count > 0)
+                {
+                    Attack();
+                }
             }
-            else
+
+            if (IsMoving == false && mHasAttacked && mClosestFiend != null && mClosestFiend.IActor is IMoveable)
             {
-                mIsAttacking = true;
-                Actor.mAnimator.PlayAnimation("smash", true, 500);
-
+                var enemy = (IMoveable)mClosestFiend.IActor;
+                if (enemy.IsMoving)
+                {
+                    SetTarget(mClosestFiend.ModelMatrix.Translation);
+                    mHasAttacked = false;
+                }
+                else
+                {
+                    IsMoving = false;
+                }
             }
-        }
 
-        public void Attacked(int damage)
-        {
-            HP -= damage;
-
-            Actor.Color = new Vector3(1.0f, 0.0f, 0.0f);
-            mIsAttacked = true;
-            if (HP - damage <= mMaxHP & HP > 0)
-            {
-                HP -= damage;
-            }
-            else if (damage < 0)
-            {
-                HP = mMaxHP;
-            }
-            else {
-                //remove later
-                Escape();
-            }
-        }
-
-        public void Collide()
-        {
-        }
-
-        public void Escape()
-        {
-        }
-
-        public bool IsMoving { get; set; }
-
-        public void Move() //Use enum for this one?
-        {
-            throw new NotImplementedException();
-
-            
-        }
-
-        public void SetTarget(Vector3 target)
-        {
-            
-        }
-
-        public bool Update(Terrain terrain, Camera camera, CameraHandler handler, Scene scene)
-        {
 
             var location = camera.mLocation;
             var rotation = new Vector2(camera.mRotation.X + handler.mRotationOffset, 0.0f);
@@ -229,7 +222,7 @@ namespace LevelEditor.Objects.Ape
                 {
                     var dir = actor.ModelMatrix.Translation - Actor.ModelMatrix.Translation;
                     dir.Normalize();
-                    if (Vector3.Dot(dir, actor.ModelMatrix.Forward) > 0.25)
+                    if (Vector3.Dot(dir, actor.ModelMatrix.Forward) < 0.0)
                     {
                         canMove = false;
                     }
@@ -251,5 +244,150 @@ namespace LevelEditor.Objects.Ape
             
             // Console.WriteLine("Silverback " + Actor.ModelMatrix.Translation + " | " + Actor.ModelMatrix.Forward);
 
+        public void Update(GameTime gameTime) { }
+
+        public void Attack()
+        {
+
+            mClosestFiend = null;
+            mClosestAngle = float.MaxValue;
+            foreach (var elem in mInRangeActors)
+            {
+                if (elem == Actor)// || elem.Data.mMesh.mMeshData.mIsTerrain)
+                {
+                    continue;
+                }
+                else
+                {
+                    var actorToEnemy = elem.ModelMatrix.Translation - Actor.ModelMatrix.Translation;
+                    var actor2Enemy2D = new Vector2(actorToEnemy.X, actorToEnemy.Z);
+
+                    if (elem.IActor is IAttacker)
+                    {
+                        var entity = (IAttacker)elem.IActor;
+                        if (entity.IsApe == false)
+                        {
+                            mIsAttacking = true;
+                            mHasAttacked = true;
+                            var currentAngle = Vector2.Dot(actor2Enemy2D, mCurrentDirection);
+                            if (currentAngle < mClosestAngle)
+                            {
+                                mClosestAngle = currentAngle;
+                                mClosestFiend = elem;
+                            }
+                        }
+                    }
+                }
+
+                    /*
+                    if (mClosestFiend == null)
+                    {
+
+                        mClosestFiend = elem;
+                        mClosestAngle = Vector2.Dot(actor2Enemy2D, mCurrentDirection);
+                    }
+                    else
+                    {
+
+                        if (elem.IActor is IAttacker)
+                        {
+                            var entity = (IAttacker)elem.IActor;
+                            if (entity.IsApe == false)
+                            {
+                                mIsAttacking = true;
+                                Actor.mAnimator.PlayAnimation("attack", true, 500);
+                                var currentAngle = Vector2.Dot(actor2Enemy2D, mCurrentDirection);
+                                if (currentAngle < mClosestAngle)
+                                {
+                                    mClosestAngle = currentAngle;
+                                    mClosestFiend = elem;
+                                }
+                            }
+                        }
+                    }
+                    */
+            }
+            
+
+            if (mClosestFiend != null && mClosestFiend.IActor is IAttacker)
+            {
+                var enemy = (IAttacker)mClosestFiend.IActor;
+                enemy.Attacked(mDamage);
+            }
+            else
+            {
+                mIsAttacking = false;
+                Actor.mAnimator.PlayAnimation("walk", true, 500);
+            }
+        }
+
+        public void Attacked(int damage)
+        {
+            mIsAttacked = true;
+            if (damage >= 0 & HP > 0)
+                {
+                    Actor.Color = new Vector3(1.0f, 0.0f, 0.0f);
+                    HP -= damage;
+            }
+            else if (damage < 0)
+                {
+                }
+            else
+            {
+                //remove later
+                Escape();
+            }
+            if (damage >0)
+            {
+                if (!HasSoundEmitter)
+                {
+                    mSoundEmitter = new AudioSource(new AudioBuffer("../../../../Content/Audio/PunchSoundMono.wav"));
+                    Actor.mAudioSources.Add(mSoundEmitter);
+                    HasSoundEmitter = true;
+                }
+                mSoundEmitter.Play();
+            }
+    }
+
+        public void SetTarget(Vector3 target)
+        {
+            
+        }
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("IsApe", IsApe);
+            info.AddValue("HP", HP);
+            info.AddValue("mDamage", mDamage);
+            info.AddValue("mCoolDown", mCoolDown);
+            info.AddValue("mRange", mRange);
+            info.AddValue("mIsAlive", mIsAlive);
+            info.AddValue("mIsAttacking", mIsAttacking);
+            info.AddValue("mIsAttacked", mIsAttacked);
+        }
+
+        public void Move() //Use enum for this one?
+        {
+            
+        }
+        public string Save()
+        {
+            return "";
+
+        }
+
+        public void Collide()
+        {
+        }
+
+        public void Escape()
+        {
+            mSoundEmitter.Dispose();
+        }
+
+        public bool Load(string str)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -128,7 +128,6 @@
     <Compile Include="LumberChoice.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Objects\Ape\Silverback.cs" />
-    <Compile Include="Objects\Ape\SubApe\Baboon.cs" />
     <Compile Include="Objects\Ape\SubApe\Capuchin.cs" />
     <Compile Include="Objects\Ape\SubApe\Chimpanezee.cs" />
     <Compile Include="Objects\Ape\SubApe\Gibbon.cs" />
@@ -138,7 +137,9 @@
     <Compile Include="Objects\ICollide.cs" />
     <Compile Include="Objects\IEscape.cs" />
     <Compile Include="Objects\IGameObject.cs" />
+    <Compile Include="Objects\ILoader.cs" />
     <Compile Include="Objects\IMoveable.cs" />
+    <Compile Include="Objects\ISaver.cs" />
     <Compile Include="Objects\Lumberjack\DoubleAxeKiller.cs" />
     <Compile Include="Objects\Lumberjack\Lumberjack.cs" />
     <Compile Include="Options.cs" />
@@ -163,9 +164,12 @@
     <Compile Include="Screen\EditorHudScreen.cs" />
     <Compile Include="Screen\GameScreen.cs" />
     <Compile Include="Screen\PauseScreen.cs" />
+    <Compile Include="Screen\ScreamScreen.cs" />
     <Compile Include="Screen\ScreenManager.cs" />
     <Compile Include="Screen\StatisticsScreen.cs" />
+    <Compile Include="Screen\TechDemoScreen.cs" />
     <Compile Include="Screen\WinScreen.cs" />
+    <Compile Include="SerializerProvider.cs" />
     <Compile Include="Sound\AudioBuffer.cs" />
     <Compile Include="Sound\AudioSource.cs" />
     <Compile Include="Sound\Fader.cs" />
@@ -176,23 +180,14 @@
     <Compile Include="UIv2\Components\CheckedButton.cs" />
     <Compile Include="UIv2\Components\Image.cs" />
     <Compile Include="UIv2\Components\IMenuComponent.cs" />
+    <Compile Include="UIv2\Components\Inputbox.cs" />
     <Compile Include="UIv2\Components\Label.cs" />
     <Compile Include="UIv2\Components\ScrollList.cs" />
     <Compile Include="UIv2\Components\Slider.cs" />
+    <Compile Include="UIv2\FontManager.cs" />
     <Compile Include="UIv2\IDrawable2D.cs" />
     <Compile Include="UIv2\InputState.cs" />
     <Compile Include="UIv2\Menu.cs" />
-    <Compile Include="UI\Components\Button.cs" />
-    <Compile Include="UI\Components\ButtonType.cs" />
-    <Compile Include="UI\Components\IDrawable2D.cs" />
-    <Compile Include="UI\Components\IImageComponent.cs" />
-    <Compile Include="UI\Components\Image.cs" />
-    <Compile Include="UI\Components\ITextComponent.cs" />
-    <Compile Include="UI\Components\Label.cs" />
-    <Compile Include="UI\Components\ScrollList.cs" />
-    <Compile Include="UI\Components\Slider.cs" />
-    <Compile Include="UI\Components\TextBox.cs" />
-    <Compile Include="UI\Menu.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="AssimpNet, Version=3.3.2.0, Culture=neutral, PublicKeyToken=3edc10cb77b1bca2, processorArchitecture=MSIL">
@@ -215,6 +210,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -225,6 +221,7 @@
     <MonoGameContentReference Include="Content\Content.mgcb" />
     <None Include="app.config" />
     <None Include="app.manifest" />
+    <None Include="ClassDiagram1.cd" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

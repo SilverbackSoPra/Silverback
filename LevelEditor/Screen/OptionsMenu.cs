@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using LevelEditor.UIv2;
-using Menu = LevelEditor.Ui.Menu;
 using LevelEditor.Sound;
 using Label = LevelEditor.UIv2.Components.Label;
 using Microsoft.Xna.Framework.Audio;
@@ -60,14 +59,15 @@ namespace LevelEditor.Screen
             mMenuList = new List<UIv2.Menu>();
 
             var menu = new UIv2.Menu(mGraphicsDevice, 5, 5, 90, 90);
-            menu.WithBackground(Menu.CreateTexture2D(deviceManager.GraphicsDevice, 50, 30, pixel => new Color(0.0f, 0.0f, 0.0f, 0.2f)), 5, 5, 90, 90);
+            menu.WithBackground(UIv2.Menu.CreateTexture2D(deviceManager.GraphicsDevice, 50, 30, pixel => new Color(0.0f, 0.0f, 0.0f, 0.2f)), 5, 5, 90, 90);
             mMenuList.Add(menu);
 
-            Texture2D Checked = Menu.CreateTexture2D(mGraphicsDevice, 200, 30, pixel => Color.DarkOliveGreen);
-            Texture2D texture2D = Menu.CreateTexture2D(mGraphicsDevice, 200, 30, pixel => Color.Black);
-            Texture2D texture2DSliderPoint = Menu.CreateTexture2D(mGraphicsDevice, 200, 30, pixel => Color.White);
+            Texture2D Checked = UIv2.Menu.CreateTexture2D(mGraphicsDevice, 200, 30, pixel => Color.DarkOliveGreen);
+            Texture2D texture2D = UIv2.Menu.CreateTexture2D(mGraphicsDevice, 200, 30, pixel => Color.Black);
+            Texture2D texture2DSliderPoint = UIv2.Menu.CreateTexture2D(mGraphicsDevice, 200, 30, pixel => Color.White);
 
             var heading = new Label(mGraphicsDevice, 35, 5, 30, 15, "Options", subHeaderFont, Color.White);
+            heading.FontType = FontManager.FontType.Subheading;
             heading.AddTo(menu);
 
 
@@ -128,6 +128,7 @@ namespace LevelEditor.Screen
                 Options.SoundEffectVolume = value;
                 effectValueBox.Text = value + "%";
             });
+            /*
             // TODO adding function of brightness 
             var brightnessLabel = new Label(mGraphicsDevice, 10, 44, 30, 3, "Brightness", font, Color.White);
             brightnessLabel.AddTo(menu);
@@ -141,13 +142,14 @@ namespace LevelEditor.Screen
                 Options.Brightness = val;
                 brightnessValueBox.Text = value + "%";
             });
+            */
 
 
-            var fxaaLabel = new Label(mGraphicsDevice, 10, 52, 30, 3, "Antialiasing", font, Color.White);
+            var fxaaLabel = new Label(mGraphicsDevice, 10, 44, 30, 3, "Antialiasing", font, Color.White);
             fxaaLabel.AddTo(menu);
-            var fxaaButtonOn = new UIv2.Components.CheckedButton(mGraphicsDevice, 40, 52, 5, 5, texture2D, Checked, "On", font, Color.White, Options.Fxaa);
+            var fxaaButtonOn = new UIv2.Components.CheckedButton(mGraphicsDevice, 40, 44, 5, 5, texture2D, Checked, "On", font, Color.White, Options.Fxaa);
             fxaaButtonOn.AddTo(menu);
-            var fxaaButtonOff = new UIv2.Components.CheckedButton(mGraphicsDevice, 46, 52, 5, 5, texture2D, Checked, "Off", font, Color.White, !Options.Fxaa);
+            var fxaaButtonOff = new UIv2.Components.CheckedButton(mGraphicsDevice, 46, 44, 5, 5, texture2D, Checked, "Off", font, Color.White, !Options.Fxaa);
             fxaaButtonOff.AddTo(menu);
 
             if (!mPauseScreen)
@@ -175,19 +177,19 @@ namespace LevelEditor.Screen
                     });
             }
 
-            var graphicsLabel = new Label(mGraphicsDevice, 10, 60, 30, 3, "Graphics Quality", font, Color.White);
+            var graphicsLabel = new Label(mGraphicsDevice, 10, 52, 30, 3, "Graphics Quality", font, Color.White);
             graphicsLabel.AddTo(menu);
 
            
-            var graphicsVeryLowButton = new UIv2.Components.CheckedButton(mGraphicsDevice, 40, 60, 8, 5, texture2D, Checked, "Very low", font, Color.White, Options.GraphicsQuality == 0);
+            var graphicsVeryLowButton = new UIv2.Components.CheckedButton(mGraphicsDevice, 40, 52, 8, 5, texture2D, Checked, "Very low", font, Color.White, Options.GraphicsQuality == 0);
             graphicsVeryLowButton.AddTo(menu);
-            var graphicsLowButton = new UIv2.Components.CheckedButton(mGraphicsDevice, 49, 60, 8, 5, texture2D, Checked, "Low", font, Color.White, Options.GraphicsQuality == 1);
+            var graphicsLowButton = new UIv2.Components.CheckedButton(mGraphicsDevice, 49, 52, 8, 5, texture2D, Checked, "Low", font, Color.White, Options.GraphicsQuality == 1);
             graphicsLowButton.AddTo(menu);
-            var graphicsMediumButton = new UIv2.Components.CheckedButton(mGraphicsDevice, 58, 60, 8, 5, texture2D, Checked, "Medium", font, Color.White, Options.GraphicsQuality == 2);
+            var graphicsMediumButton = new UIv2.Components.CheckedButton(mGraphicsDevice, 58, 52, 8, 5, texture2D, Checked, "Medium", font, Color.White, Options.GraphicsQuality == 2);
             graphicsMediumButton.AddTo(menu);
-            var graphicsHighButton = new UIv2.Components.CheckedButton(mGraphicsDevice, 67, 60, 8, 5, texture2D, Checked, "High", font, Color.White, Options.GraphicsQuality == 3);
+            var graphicsHighButton = new UIv2.Components.CheckedButton(mGraphicsDevice, 67, 52, 8, 5, texture2D, Checked, "High", font, Color.White, Options.GraphicsQuality == 3);
             graphicsHighButton.AddTo(menu);
-            var graphicsVeryHighButton = new UIv2.Components.CheckedButton(mGraphicsDevice, 76, 60, 8, 5, texture2D, Checked, "Very high", font, Color.White, Options.GraphicsQuality == 4);
+            var graphicsVeryHighButton = new UIv2.Components.CheckedButton(mGraphicsDevice, 76, 52, 8, 5, texture2D, Checked, "Very high", font, Color.White, Options.GraphicsQuality == 4);
             graphicsVeryHighButton.AddTo(menu);
 
             // We just want to use the handlers if this screen isn't initialized by the PauseScreen
@@ -282,6 +284,15 @@ namespace LevelEditor.Screen
                 SoundManager.AddSound(mClickSound);
                 ScreenManager.Remove(this);
                 IsVisible = false;
+            });
+            var techDemoButton = new UIv2.Components.Button(mGraphicsDevice, 70, 80, 20, 7, texture2D, "Techdemo", font, Color.White);
+            techDemoButton.AddTo(menu);
+            techDemoButton.AddListener(MouseButtons.Left, InputState.Pressed, () =>
+            {
+                var techDemoScreen = new TechDemoScreen();
+                ScreenManager.Add(techDemoScreen);
+                IsVisible = false;
+
             });
         }
 

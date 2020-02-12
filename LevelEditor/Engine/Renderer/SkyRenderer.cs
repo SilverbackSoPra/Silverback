@@ -61,7 +61,7 @@ namespace LevelEditor.Engine.Renderer
             mShader.Apply();
 
             mDevice.SetVertexBuffer(mSkyDome.VertexBuffer);
-            mDevice.Indices = (mSkyDome.IndexBuffer);
+            mDevice.Indices = mSkyDome.IndexBuffer;
 
             mDevice.DrawIndexedPrimitives(mSkyDome.mMeshData.mPrimitiveType,
                 0,

@@ -7,93 +7,103 @@ using Microsoft.Xna.Framework;
 
 namespace LevelEditor.Pathfinding
 {
+
     public static class AStar
     {
-        public static Vertex Search(Vertex start, Vertex end, IEnumerable<Vertex> vertices, IEnumerable<Edge> edges,
-            Func<Vertex, Edge, Vertex> extractOtherVertex)
+
+        private static CompareVertexCost mCompareVertexCost = new CompareVertexCost();
+
+        public static Vertex Search(Vertex start, Vertex end, IEnumerable<Vertex> vertices)
         {
-            var open = new SortedSet<Vertex>();
-            
+
+            var open = new SortedSet<Vertex>(new CompareVertexCost());
+
             var closed = new HashSet<Vertex>();
 
+            foreach (var vertex in vertices)
+            {
+                vertex.mHeuristicCost = float.MaxValue;
+                vertex.mCost = float.MaxValue;
+            }
+
             var currentNode = start;
-            currentNode.mDestination = end;
             currentNode.mCost = 0.0f;
-            currentNode.mHeuristicCost = Vector2.Distance(start.Position, end.Position);
+            currentNode.mHeuristicCost = Vector2.DistanceSquared(start.Position, end.Position);
             var firstNode = currentNode;
 
-
             open.Add(firstNode);
+
             while (open.Count > 0)
             {
+
                 currentNode = open.Min;
+
                 if (currentNode.Equals(end))
                 {
                     break;
                 }
 
-                open.Remove(currentNode);
-
+                open.Remove(open.Min);
                 closed.Add(currentNode);
 
                 // Get all Nodes containing currentNode.mVertex
-                var tmpEdges = FindEdges(currentNode, edges);
-                var successors = tmpEdges.Select(edge => extractOtherVertex(currentNode, edge)).ToList();
+                var neighbours = currentNode.mAdjacentVertices;
 
                 // Iterate over all successors of currentNode.mVertex
-                foreach (var successor in successors)
+                foreach (var neighbour in neighbours)
                 {
-                    if (closed.Contains(successor))
+
+                    if (closed.Contains(neighbour))
                     {
                         continue;
                     }
 
-                    successor.mDestination = end;
-
-                    var cost = currentNode.mCost + Vector2.Distance(currentNode.Position, successor.Position);
-
+                    var cost = currentNode.mCost + Vector2.DistanceSquared(currentNode.Position, neighbour.Position);
                     
-                    if (open.Contains(successor) && cost >= successor.mCost)
+                    if (!open.Contains(neighbour))
+                    {
+                        open.Add(neighbour);
+                    }
+                    else if (cost >= neighbour.mCost)
                     {
                         continue;
                     }
+
+                    open.Remove(neighbour);
+                    neighbour.mPreviousVertex = currentNode;
+                    neighbour.mCost = cost;
+                    neighbour.mHeuristicCost = cost + Vector2.DistanceSquared(neighbour.Position, end.Position);
+                    open.Add(neighbour);
                     
-                    successor.mPreviousVertex = currentNode;
-                    currentNode.mNextVertex = successor;
-                    successor.mCost = cost;
-
-                    // Calculate the heurisic cost from start over nextVertex to end
-                    var hCost = successor.mCost + Vector2.Distance(successor.Position, end.Position);
-
-                    if (open.Contains(successor))
-                    {
-                        // Adjust the cost value
-                        open.Remove(successor);
-                        successor.mHeuristicCost = hCost;
-                        open.Add(successor);
-                        continue;
-                    }
-                    open.Add(successor);
                 }
 
+            }
+
+            while (currentNode.mPreviousVertex != null)
+            {
+                currentNode.mPreviousVertex.mNextVertex = currentNode;
+                currentNode = currentNode.mPreviousVertex;
             }
             
             return firstNode;
         }
 
-    
-        private static IEnumerable<Edge> FindEdges(Vertex vertex, IEnumerable<Edge> edges)
+        private class CompareVertexCost : IComparer<Vertex>
         {
-            Func<Vertex, Edge, bool> isVertexInEdge = (v, edge) =>
+            public int Compare(Vertex x, Vertex y)
             {
-                // For debuging splitted into multiple lines
-                var a = edge.V1 == v;
-                var b = edge.V2 == v;
-                return a || b;
-            };
-
-            return edges.Where(edge => isVertexInEdge(vertex, edge));
+                if (x.mHeuristicCost < y.mHeuristicCost)
+                {
+                    return -1;
+                }
+                if (x.mHeuristicCost > y.mHeuristicCost)
+                {
+                    return 1;
+                }
+                return 0;
+            }
         }
+
     }
     
 

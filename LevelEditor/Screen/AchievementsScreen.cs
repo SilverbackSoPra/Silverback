@@ -4,7 +4,6 @@ using System.Windows.Forms;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using Menu = LevelEditor.Ui.Menu;
 using LevelEditor.Sound;
 using LevelEditor.UIv2;
 using Microsoft.Xna.Framework.Audio;
@@ -67,44 +66,45 @@ namespace LevelEditor.Screen
             // mEditorScreen = new EditorScreen();
             // ScreenManager.Add(mEditorScreen);
 
-            Texture2D texture2D = Menu.CreateTexture2D(mGraphicsDevice, 200, 30, pixel => Color.Black);
-            Texture2D Checked = Menu.CreateTexture2D(mGraphicsDevice, 200, 30, pixel => Color.DarkOliveGreen);
+            Texture2D texture2D = UIv2.Menu.CreateTexture2D(mGraphicsDevice, 200, 30, pixel => Color.Black);
+            Texture2D Checked = UIv2.Menu.CreateTexture2D(mGraphicsDevice, 200, 30, pixel => Color.DarkOliveGreen);
 
             // Instantiate a new menu
             var menu = new UIv2.Menu(deviceManager.GraphicsDevice, 5, 5, 90, 90);
-            menu.WithBackground(Menu.CreateTexture2D(mGraphicsDevice, (int)mTotalWindowSize.X, (int)mTotalWindowSize.Y, pixel => new Color(0.0f, 0.0f, 0.0f, 0.2f)), 5, 5, 90, 90);
+            menu.WithBackground(UIv2.Menu.CreateTexture2D(mGraphicsDevice, (int)mTotalWindowSize.X, (int)mTotalWindowSize.Y, pixel => new Color(0.0f, 0.0f, 0.0f, 0.2f)), 5, 5, 90, 90);
 
             var screenName = new UIv2.Components.Label(deviceManager.GraphicsDevice, 35, 5, 30, 15, "Achievements", subHeaderFont, Color.White);
+            screenName.FontType = FontManager.FontType.Subheading;
             screenName.AddTo(menu);
 
 
             // “Gamemaster”: Beende das Spiel erfolgreich.
             var gamemasterString = "Gamemaster: You've played through the whole game. Nice work!";
-            var gamemasterButton = new UIv2.Components.CheckedButton(mGraphicsDevice, 15, 25, 70, 7, texture2D, Checked, gamemasterString, font, Color.White, false);
+            var gamemasterButton = new UIv2.Components.CheckedButton(mGraphicsDevice, 15, 25, 70, 7, texture2D, Checked, gamemasterString, font, Color.White, Achievements.Gamemaster);
             gamemasterButton.AddTo(menu);
 
 
             // “Lumberjack’s nightmare”: Vertreibe 42 Holzfäller.
             var lumberjackString = "Lumberjack's nightmare: You've made 42 lumberjacks run away. Awesome!";
-            var lumberjackLabel = new UIv2.Components.CheckedButton(mGraphicsDevice, 15, 35, 70, 7, texture2D, Checked, lumberjackString, font, Color.White, false);
+            var lumberjackLabel = new UIv2.Components.CheckedButton(mGraphicsDevice, 15, 35, 70, 7, texture2D, Checked, lumberjackString, font, Color.White, Achievements.LumberjacksNightmare);
             lumberjackLabel.AddTo(menu);
 
 
             // “Speed runner”: Beende das Spiel innerhalb von 60 Minuten.
             var speedyString = "Speed runner: You've finished the whole game within 1 hour. Speedy Gonzales huh?!";
-            var speedyLabel = new UIv2.Components.CheckedButton(mGraphicsDevice, 15, 45, 70, 7, texture2D, Checked, speedyString, font, Color.White, false);
+            var speedyLabel = new UIv2.Components.CheckedButton(mGraphicsDevice, 15, 45, 70, 7, texture2D, Checked, speedyString, font, Color.White, Achievements.Speedrunner);
             speedyLabel.AddTo(menu);
 
 
             // “Redundancy”: Erhalte ein Achievement.
             var redundancyString = "Redundancy: An achievement is officially yours. Hopefully you're happy with it!";
-            var redundancyLabel = new UIv2.Components.CheckedButton(mGraphicsDevice, 15, 55, 70, 7, texture2D, Checked, redundancyString, font, Color.White, false);
+            var redundancyLabel = new UIv2.Components.CheckedButton(mGraphicsDevice, 15, 55, 70, 7, texture2D, Checked, redundancyString, font, Color.White, Achievements.Redundancy);
             redundancyLabel.AddTo(menu);
 
 
             // “Tribute to the creators”: Credits angeschaut.
             var creditsString = "Tribute to the creators: You've had a look at the credits. Thanks man!";
-            var creditsLabel = new UIv2.Components.CheckedButton(mGraphicsDevice, 15, 65, 70, 7, texture2D, Checked, creditsString, font, Color.White, false);
+            var creditsLabel = new UIv2.Components.CheckedButton(mGraphicsDevice, 15, 65, 70, 7, texture2D, Checked, creditsString, font, Color.White, Achievements.TributeToTheCreators);
             creditsLabel.AddTo(menu);
 
             var backButton = new UIv2.Components.Button(mGraphicsDevice, 40, 80, 20, 7, texture2D, "Back", font, Color.White);

@@ -7,7 +7,7 @@ namespace LevelEditor.Engine.Helper
     /// <summary>
     /// Frustum culling reduces the number of actors rendered in the scene.
     /// </summary>
-    class FrustumCulling
+    internal class FrustumCulling
     {
 
         private static double sTang;
@@ -30,7 +30,7 @@ namespace LevelEditor.Engine.Helper
             CalculateCameraFrustum(camera);
 
             foreach (var actorBatch in scene.mActorBatches)
-            {
+            { 
 
                 var boundingSphere = actorBatch.mMesh.mMeshData.mBoundingSphere;
 
@@ -50,7 +50,7 @@ namespace LevelEditor.Engine.Helper
                     var translation = actor.ModelMatrix.Translation + boundingSphere.Center;
                     var distance = 0.0f;
 
-                    actor.mRender = IsSphereVisible(translation, boundingSphere.Radius, 1.0f, camera, camera.mFarPlane, ref distance);
+                    actor.mRender = IsSphereVisible(translation, boundingSphere.Radius, 1.0f, camera, ref distance);
 
                     if (actor.mRender)
                     {
@@ -114,7 +114,14 @@ namespace LevelEditor.Engine.Helper
 
             foreach (var patch in grass.mPatches)
             {
-                patch.mRender = IsSphereVisible(patch.mPosition, patch.mRadius, 2.0f, camera, camera.mFarPlane, ref patch.mDistance);
+
+                if (patch.mSlope > Math.PI / 6.0f)
+                {
+                    patch.mRender = false;
+                    continue;
+                }
+
+                patch.mRender = IsSphereVisible(patch.mPosition, patch.mRadius, 2.0f, camera, ref patch.mDistance);
 
                 if (patch.mRender)
                 {
@@ -126,22 +133,23 @@ namespace LevelEditor.Engine.Helper
 
         }
 
-        private static bool IsSphereVisible(Vector3 point, float radius, float scale, Camera camera, float maxDistance, ref float distance)
+        private static bool IsSphereVisible(Vector3 point, float radius, float scale, Camera camera, ref float distance)
         {
 
             var d = radius * scale;
 
-            point = Vector3.Transform(point, camera.mViewMatrix);
+            var cameraLocation = camera.mThirdPerson ? camera.mLocation - camera.Direction * camera.mThirdPersonDistance : camera.mLocation;
+            point = point - cameraLocation;
 
-            var z = -point.Z;
+            var z = Vector3.Dot(point, sZ);
             distance = z;
 
-            if (z - d > maxDistance || z + d < camera.mNearPlane)
+            if (z - d > camera.mFarPlane || z + d < camera.mNearPlane)
             {
                 return false;
             }
 
-            var y = point.Y;
+            var y = Vector3.Dot(point, sY);
             var localHeight = z * sTang;
 
             if (y - d > localHeight || y + d < -localHeight)
@@ -149,7 +157,7 @@ namespace LevelEditor.Engine.Helper
                 return false;
             }
 
-            var x = point.X;
+            var x = Vector3.Dot(point, sX);
             var localWidth = localHeight * camera.mAspectRatio;
 
             return !(x - d > localWidth) && !(x + d < -localWidth);

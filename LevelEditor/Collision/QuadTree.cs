@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -8,14 +9,20 @@ using Microsoft.Xna.Framework;
 
 namespace LevelEditor.Collision
 {
-    class QuadTree<T>
+    [Serializable()]
+    public class QuadTree<T>: ISerializable
     {
 
-        private TreeNode<T> mRootNode;
+        public TreeNode<T> mRootNode;
+        public Rectangle mBoundary;
+        public int mCapacity;
+        public int mMaxDepth;
 
         public QuadTree(Rectangle boundary, int capacity, int maxDepth)
         {
-
+            mBoundary = boundary;
+            mCapacity = capacity;
+            mMaxDepth = maxDepth;
             mRootNode = new TreeNode<T>(boundary, capacity, maxDepth);
 
         }
@@ -43,5 +50,19 @@ namespace LevelEditor.Collision
 
         }
 
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("mRootNode", mRootNode);
+        }
+
+        public QuadTree(SerializationInfo info, StreamingContext context)
+        {
+            mRootNode = (TreeNode<T>)info.GetValue("mRootNode", typeof(TreeNode<T>));
+        }
+
+        public QuadTree()
+        {
+            mRootNode = new TreeNode<T>(mBoundary, mCapacity, mMaxDepth);
+        }
     }
 }

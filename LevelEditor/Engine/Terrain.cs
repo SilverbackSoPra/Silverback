@@ -4,15 +4,19 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using System.IO;
+using System.Runtime.Serialization;
+using System.Xml.Serialization;
 
 namespace LevelEditor.Engine
 {
-    internal sealed class Terrain : IActor
+    [Serializable()]
+    public sealed class Terrain : IActor, ISerializable
     {
 
         public Actor Actor { get; }
         public int Size { get; }
 
+        [XmlIgnore]
         public Grass mGrass;
 
         private const float TerrainScale = 1.0f;
@@ -60,6 +64,8 @@ namespace LevelEditor.Engine
 
             var textureStream = new FileStream(texturePath, FileMode.Open, FileAccess.Read);
             material.mDiffuseMap = Texture2D.FromStream(device, textureStream);
+            material.DiffuseMapStream = textureStream;
+            material.mGraphicsDevice = device;
             textureStream.Close();
 
             material.mDiffuseColor = new Vector3(1.0f);
@@ -125,8 +131,6 @@ namespace LevelEditor.Engine
             var x = mWidth / 2f + location.X;
             var z = mHeight / 2f + location.Z;
 
-            // Console.WriteLine(x.ToString() + " " + z.ToString());
-
             if (x < 0 || z < 0 || x >= (mWidth - 1) * TerrainScale || z >= (mHeight - 1) * TerrainScale)
             {
                 return 0.0f;
@@ -140,7 +144,7 @@ namespace LevelEditor.Engine
                 return 0.0f;
             }
 
-            var coord = new Vector2((x % TerrainScale) / TerrainScale, (z % TerrainScale) / TerrainScale);
+            var coord = new Vector2(x % TerrainScale / TerrainScale, z % TerrainScale / TerrainScale);
 
             if (coord.X > coord.Y)
             {
@@ -160,6 +164,47 @@ namespace LevelEditor.Engine
             }
 
             return height;
+
+        }
+
+        public float GetSlope(Vector3 location)
+        {
+
+            var x = mWidth / 2f + location.X;
+            var z = mHeight / 2f + location.Z;
+
+            if (x < 0 || z < 0 || x >= (mWidth - 1) * TerrainScale || z >= (mHeight - 1) * TerrainScale)
+            {
+                return 0.0f;
+            }
+
+            var position = new Vector2((int)Math.Floor(x / TerrainScale), (int)Math.Floor(z / TerrainScale));
+
+            if (position.X < 0 || position.Y < 0 ||
+                (int)position.X >= mWidth * TerrainScale || (int)position.Y >= mHeight * TerrainScale)
+            {
+                return 0.0f;
+            }
+
+            var northWest = new Vector3(0.0f, Actor.mMesh.mMeshData.mVertices[(int)(position.X + mWidth * position.Y)].Position.Y, 0.0f);
+            var northEast = new Vector3(1.0f, Actor.mMesh.mMeshData.mVertices[(int)(position.X + 1 + mWidth * position.Y)].Position.Y, 0.0f);
+            var southWest = new Vector3(0.0f, Actor.mMesh.mMeshData.mVertices[(int)(position.X + mWidth * (position.Y + 1))].Position.Y, 1.0f);
+            var southEast = new Vector3(1.0f, Actor.mMesh.mMeshData.mVertices[(int)(position.X + 1 + mWidth * (position.Y + 1))].Position.Y, 1.0f);
+
+            var min = northWest;
+            min = min.Y > northEast.Y ? northEast : min;
+            min = min.Y > southWest.Y ? southWest : min;
+            min = min.Y > southEast.Y ? southEast : min;
+
+            var max = northWest;
+            max = max.Y < northEast.Y ? northEast : max;
+            max = max.Y < southWest.Y ? southWest : max;
+            max = max.Y < southEast.Y ? southEast : max;
+
+            var distance = Vector2.Distance(new Vector2(min.X, min.Z), new Vector2(max.X, max.Z));
+            var difference = max.Y - min.Y;
+
+            return (float)Math.Sinh(difference / distance);
 
         }
 
@@ -236,6 +281,44 @@ namespace LevelEditor.Engine
 
         }
 
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("Actor", Actor);
+            info.AddValue("Size", Size);
+            info.AddValue("mGrass", mGrass);
+            info.AddValue("TerrainMaxHeight", TerrainMaxHeight);
+            info.AddValue("mHeight", mHeight);
+            info.AddValue("mWidth", mWidth);
+            info.AddValue("mHeightMapPath", mHeightMapPath);
+            info.AddValue("mTexturePath", mTexturePath);
+            info.AddValue("mContent", mContent);
+            info.AddValue("mGraphics", mGraphics);
+        }
+
+        public Terrain(SerializationInfo info, StreamingContext context)
+        {
+            Actor = (Actor)info.GetValue("Actor", typeof(Actor));
+            Size = (int)info.GetValue("Size", typeof(int));
+            mGrass = (Grass)info.GetValue("mGrass", typeof(Grass));
+            TerrainMaxHeight = (float)info.GetValue("TerrainMaxHeight", typeof(float));
+            mHeight = (int)info.GetValue("mHeight", typeof(int));
+            mWidth = (int)info.GetValue("mWidth", typeof(int));
+            mHeightMapPath = (string)info.GetValue("mHeightMapPath", typeof(string));
+            mTexturePath = (string)info.GetValue("mTexturePath", typeof(string));
+            mContent = (ContentManager)info.GetValue("mContent", typeof(ContentManager));
+            mGraphics = (GraphicsDevice)info.GetValue("mGraphics", typeof(GraphicsDevice));
+        }
+
+        public Terrain()
+        {
+            mGrass = new Grass(this);
+        }
+        [OnDeserialized()]
+        internal void OnSerializedMethod(StreamingContext context)
+        {
+            // Setting this as parent property for Child object
+            Actor.IActor = this;
+        }
     }
 
 }

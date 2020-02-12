@@ -1,6 +1,6 @@
 ﻿namespace LevelEditor.UIv2
 {
-    enum InputState
+    public enum InputState
     {
         Pressed,
         Down,

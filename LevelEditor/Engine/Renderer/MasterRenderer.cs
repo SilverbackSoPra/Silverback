@@ -168,7 +168,10 @@ namespace LevelEditor.Engine.Renderer
 
             mGraphicsDevice.RasterizerState = RasterizerState.CullNone;
 
-            mGrassRenderer.Render(target, camera, scene);
+            if (scene.mTerrain != null && scene.mTerrain.mGrass.mActivated)
+            {
+                mGrassRenderer.Render(target, camera, scene);
+            }
 
             if (DebugMode)
             {

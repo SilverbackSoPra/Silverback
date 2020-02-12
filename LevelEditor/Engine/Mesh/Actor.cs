@@ -1,27 +1,43 @@
-﻿using LevelEditor.Engine.Animation;
+﻿using System;
+using LevelEditor.Engine.Animation;
 using LevelEditor.Sound;
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
+using System.Xml.Serialization;
 using LevelEditor.Collision;
+using Newtonsoft.Json;
 
 namespace LevelEditor.Engine.Mesh
 {
     /// <summary>
     /// An actor represents an instance of a mesh in a scene.
     /// </summary>
-    internal sealed class Actor
+    [Serializable()]
+    public sealed class Actor: ISerializable
     {
-
-        public readonly List<AudioSource> mAudioSources;
+        
+        public List<AudioSource> mAudioSources;
 
         // ReSharper disable InconsistentNaming
-        public IActor IActor { get; private set; }
+        [XmlIgnore]
+        public IActor IActor { get; set; }
 
         public bool Collision { get; set; }
-
+        
         public bool QuadTree { get; set; }
 
         public bool Intersects { get; set; }
+
+        public Vector3 Color { get; set; }
+
+        [XmlIgnore]
+        public Mesh mMesh;
+
+        public CollisionRectangle mBoundingRectangle;
+
+        [XmlIgnore]
+        public Animator mAnimator;
 
         public Matrix ModelMatrix
         {
@@ -46,18 +62,10 @@ namespace LevelEditor.Engine.Mesh
             }
         }
 
-        public Vector3 Color { get; set; }
-
-        public readonly Mesh mMesh;
-
-        public readonly CollisionRectangle mBoundingRectangle;
-
-        public readonly Animator mAnimator;
-
         public bool mRender;
         public bool mCastShadow;
 
-        private Matrix mModelMatrix;
+        public Matrix mModelMatrix;
 
         /// <summary>
         /// Constructs an <see cref="Actor"/>.
@@ -111,6 +119,11 @@ namespace LevelEditor.Engine.Mesh
 
         }
 
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+        }
+
+        public Actor() { }
     }
 
 }

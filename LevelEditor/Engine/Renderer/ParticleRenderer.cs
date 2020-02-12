@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LevelEditor.Engine.Renderer
 {
-    class ParticleRenderer : IRenderer
+    internal class ParticleRenderer : IRenderer
     {
         
 

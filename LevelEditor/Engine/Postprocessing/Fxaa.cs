@@ -5,7 +5,7 @@ namespace LevelEditor.Engine.Postprocessing
     /// <summary>
     /// Represents the fast approximate anti-aliasing algorithm.
     /// </summary>
-    internal sealed class Fxaa
+    public sealed class Fxaa
     {
 
         public bool Activated { get; set; }

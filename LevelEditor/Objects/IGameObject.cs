@@ -2,13 +2,10 @@
 
 namespace LevelEditor.Objects
 {
-    interface IGameObject
+    interface IGameObject : ISaver, ILoader
     {
         String Name { get; set; }
 
         bool HasSoundEmitter { get; set; }
-
-        string Save();
-        bool Load();
     }
 }

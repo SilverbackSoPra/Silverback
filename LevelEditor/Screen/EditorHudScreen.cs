@@ -7,11 +7,13 @@ using LevelEditor.Objects.Ape;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using Menu = LevelEditor.Ui.Menu;
 using LevelEditor.Sound;
 using LevelEditor.UIv2;
 using Microsoft.Xna.Framework.Audio;
 using LevelEditor.Engine;
+using LevelEditor.Engine.Mesh;
+using LevelEditor.Engine.Loader;
+using LevelEditor.Objects;
 
 namespace LevelEditor.Screen
 {
@@ -24,7 +26,7 @@ namespace LevelEditor.Screen
         private EditorScreen mGameScreen;
         private GraphicsDevice mDevice;
         private SpriteFont mFont;
-        private SpriteFont mFont2;
+        private SpriteFont mStoryFont;
 
         private SpriteBatch mSpriteBatch;
 
@@ -38,6 +40,16 @@ namespace LevelEditor.Screen
         public ScreenManager ScreenManager { get; set; }
         public SoundManager SoundManager { get; set; }
         public bool IsVisible { get; set; }
+
+        private Actor mSilverbackLocationActor;
+        private Mesh mSilverbackLocationMesh;
+
+        private UIv2.Menu mEffectsMenu = null;
+        private UIv2.Menu mMechanicsMenu = null;
+
+        private Hut mHut1 = null;
+        private Hut mHut2 = null;
+        private Hut mHut3 = null;
 
         public void LoadContent(GraphicsDeviceManager deviceManager,
             ContentManager contentManager,
@@ -60,23 +72,25 @@ namespace LevelEditor.Screen
             var buttonWidthPlusGap = 11;
             var menuButtonCounter = 0;
 
+            var modelLoader = new ModelLoader(mDevice);
+            mSilverbackLocationMesh = modelLoader.LoadMesh("../../../../Content/Mesh/sphere.obj");
+            mSilverbackLocationActor = new Actor(mSilverbackLocationMesh);
+
             // Load font
             mFont = contentManager.Load<SpriteFont>("Font");
             var buttonTexture = contentManager.Load<Texture2D>("button");
 
-            var texture2DMenu = Menu.CreateTexture2D(deviceManager.GraphicsDevice,
+            var texture2DMenu = UIv2.Menu.CreateTexture2D(deviceManager.GraphicsDevice,
                 50,
                 30,
                 pixel => new Color(0.0f, 0.0f, 0.0f, 0.2f));
-            var texture2D = Menu.CreateTexture2D(deviceManager.GraphicsDevice,
+            var texture2D = UIv2.Menu.CreateTexture2D(deviceManager.GraphicsDevice,
                 50,
                 30,
                 pixel => Color.Black);
             IsVisible = true;
 
-            // Texture for the health Bar
-            mFont2 = contentManager.Load<SpriteFont>("Font2");
-            var texture2Dhealthpoints = Menu.CreateTexture2D(deviceManager.GraphicsDevice,
+            var texture2Dhealthpoints = UIv2.Menu.CreateTexture2D(deviceManager.GraphicsDevice,
                 50,
                 30,
                 pixel => Color.Red);
@@ -84,7 +98,7 @@ namespace LevelEditor.Screen
 
             mSpriteBatch = new SpriteBatch(mDevice);
 
-            mFont2 = contentManager.Load<SpriteFont>("Font2");
+            mStoryFont = contentManager.Load<SpriteFont>("StoryFont");
 
 
             // Instantiate a new menu
@@ -92,8 +106,7 @@ namespace LevelEditor.Screen
             mGameScreen = new EditorScreen();
             ScreenManager.Add(mGameScreen);
 
-            UIv2.Menu effectsMenu = null;
-            UIv2.Menu mechanicsMenu = null;
+            mGameScreen.mLevel.Add(mSilverbackLocationActor);
 
             var menu = new UIv2.Menu(mDevice, 0, 0, 100, 5);
             menu.WithBackground(texture2DMenu, 0, 0, 100, 100);
@@ -142,8 +155,29 @@ namespace LevelEditor.Screen
                         return;
                     }
 
+                    mGameScreen.mLevel.mHuts.Clear();
+
                     mGameScreen.mLevel.mActorBatches.Clear();
                     mGameScreen.mLevel.Load(dialog.FileName);
+
+                    mHut1 = null;
+                    mHut2 = null;
+                    mHut3 = null;
+
+                    if (mGameScreen.mLevel.mHuts.Count > 0)
+                    {
+                        mHut1 = mGameScreen.mLevel.mHuts[0];
+                    }
+                    if (mGameScreen.mLevel.mHuts.Count > 1)
+                    {
+                        mHut2 = mGameScreen.mLevel.mHuts[1];
+                    }
+                    if (mGameScreen.mLevel.mHuts.Count > 2)
+                    {
+                        mHut3 = mGameScreen.mLevel.mHuts[2];
+                    }
+
+                    mGameScreen.mLevel.mHuts.Clear();
 
                     scrollList.ChildMenu.mElementList.Clear();
                     scrollListButtonCount = 0;
@@ -185,6 +219,9 @@ namespace LevelEditor.Screen
                         scrollListButtonCount++;
                     }
 
+                    mSilverbackLocationActor.ModelMatrix = Matrix.CreateTranslation(mGameScreen.mLevel.mInitialSilverbackLocation);
+                    mGameScreen.mLevel.Add(mSilverbackLocationActor);
+
                     deviceManager.ToggleFullScreen();
 
                 });
@@ -219,7 +256,22 @@ namespace LevelEditor.Screen
                     };
                     if (dialog.ShowDialog() == DialogResult.OK)
                     {
+                        if (mHut1 != null)
+                        {
+                            mGameScreen.mLevel.mHuts.Add(mHut1);
+                        }
+                        if (mHut2 != null)
+                        {
+                            mGameScreen.mLevel.mHuts.Add(mHut2);
+                        }
+                        if (mHut3 != null)
+                        {
+                            mGameScreen.mLevel.mHuts.Add(mHut3);
+                        }
+                        mGameScreen.mLevel.mInitialSilverbackLocation = mSilverbackLocationActor.ModelMatrix.Translation;
+                        mGameScreen.mLevel.Remove(mSilverbackLocationActor);
                         mGameScreen.mLevel.Save(dialog.FileName);
+                        mGameScreen.mLevel.Add(mSilverbackLocationActor);
                     }
 
                     deviceManager.ToggleFullScreen();
@@ -351,9 +403,9 @@ namespace LevelEditor.Screen
 
                         // Create a button
                         var modelButton = new UIv2.Components.Button(mDevice,
-                            36,
+                            0,
                             7 * scrollListButtonCount,
-                            7,
+                            100,
                             5,
                             texture2D,
                             Path.GetFileName(mesh.Path),
@@ -367,7 +419,10 @@ namespace LevelEditor.Screen
 
                                 SoundManager.AddSound(mClickSound);
 
-                                mGameScreen.mLevel.Remove(mGameScreen.mSelectedActor);
+                                if (mGameScreen.mSelectedActor != null)
+                                {
+                                    mGameScreen.mLevel.Remove(mGameScreen.mSelectedActor);
+                                }
                                 mGameScreen.mSelectedActor = null;
                                 mGameScreen.mSelectedMesh = mesh;
                                 mGameScreen.mSelectMode = false;
@@ -398,21 +453,21 @@ namespace LevelEditor.Screen
                 {
 
                     SoundManager.AddSound(mClickSound);
-                    if (effectsMenu == null)
+                    if (mEffectsMenu == null)
                     {
-                        if (mechanicsMenu != null)
+                        if (mMechanicsMenu != null)
                         {
-                            mMenuList.Remove(mechanicsMenu);
-                            mechanicsMenu = null;
+                            mMenuList.Remove(mMechanicsMenu);
+                            mMechanicsMenu = null;
                         }
-                        effectsMenu = CreateSettingsMenu(buttonTexture, texture2DMenu);
-                        mMenuList.Add(effectsMenu);
-                        effectsMenu.CheckRegisteredEvents();
+                        mEffectsMenu = CreateSettingsMenu(buttonTexture, texture2DMenu);
+                        mMenuList.Add(mEffectsMenu);
+                        mEffectsMenu.CheckRegisteredEvents();
                     }
                     else
                     {
-                        mMenuList.Remove(effectsMenu);
-                        effectsMenu = null;
+                        mMenuList.Remove(mEffectsMenu);
+                        mEffectsMenu = null;
                     }
                 });
 
@@ -433,21 +488,21 @@ namespace LevelEditor.Screen
                 {
 
                     SoundManager.AddSound(mClickSound);
-                    if (mechanicsMenu == null)
+                    if (mMechanicsMenu == null)
                     {
-                        if (effectsMenu != null)
+                        if (mEffectsMenu != null)
                         {
-                            mMenuList.Remove(effectsMenu);
-                            effectsMenu = null;
+                            mMenuList.Remove(mEffectsMenu);
+                            mEffectsMenu = null;
                         }
-                        mechanicsMenu = CreateMechanicsMenu(buttonTexture, texture2DMenu);
-                        mMenuList.Add(mechanicsMenu);
-                        mechanicsMenu.CheckRegisteredEvents();
+                        mMechanicsMenu = CreateMechanicsMenu(buttonTexture, texture2DMenu);
+                        mMenuList.Add(mMechanicsMenu);
+                        mMechanicsMenu.CheckRegisteredEvents();
                     }
                     else
                     {
-                        mMenuList.Remove(mechanicsMenu);
-                        mechanicsMenu = null;
+                        mMenuList.Remove(mMechanicsMenu);
+                        mMechanicsMenu = null;
                     }
                 });
 
@@ -592,8 +647,8 @@ namespace LevelEditor.Screen
             var buttonX = 40;
 
 
-            Texture2D texture2D = Menu.CreateTexture2D(mDevice, 200, 30, pixel => Color.Black);
-            Texture2D texture2DSliderPoint = Menu.CreateTexture2D(mDevice, 200, 30, pixel => Color.White);
+            Texture2D texture2D = UIv2.Menu.CreateTexture2D(mDevice, 200, 30, pixel => Color.Black);
+            Texture2D texture2DSliderPoint = UIv2.Menu.CreateTexture2D(mDevice, 200, 30, pixel => Color.White);
 
             var bloomIntensityLabel = new UIv2.Components.Label(mDevice,
                 labelX,
@@ -1051,6 +1106,40 @@ namespace LevelEditor.Screen
                 mGameScreen.mLevel.mFog.mColor.Z = val / 255.0f;
             });
 
+            var fogDistanceLabel = new UIv2.Components.Label(mDevice,
+               labelX,
+               scrollListRowCount * rowSpace,
+               labelWidth,
+               rowHeight,
+               "Fog distance",
+               mFont,
+               Color.White);
+            fogDistanceLabel.AddTo(settingsMenu);
+            var valueBox15 = new UIv2.Components.Label(mDevice,
+                valueX,
+                scrollListRowCount * rowSpace,
+                valueWidth,
+                rowHeight,
+                "",
+                mFont,
+                Color.White);
+            valueBox15.AddTo(settingsMenu);
+            var fogDistanceSlider = new UIv2.Components.Slider(mDevice,
+                settingsMenu,
+                sliderX,
+                scrollListRowCount++ * rowSpace,
+                sliderWidth,
+                rowHeight,
+                texture2D,
+                texture2DSliderPoint,
+                0,
+                500,
+                mGameScreen.mLevel.mFog.mDistance);
+            fogDistanceSlider.AddOnChangeListeners((val) =>
+            {
+                valueBox15.Text = val.ToString(CultureInfo.InvariantCulture);
+                mGameScreen.mLevel.mFog.mDistance = val;
+            });
 
             scrollListRowCount += 2;
 
@@ -1108,28 +1197,335 @@ namespace LevelEditor.Screen
             var mechanicsMenu = new UIv2.Menu(mDevice, 2, 12, 68, 86);
             mechanicsMenu.WithBackground(texture2DMenu, 0, 0, 100, 100);
 
-            // Just in case we need more space
-            // var scrollListSettings = new UIv2.Components.ScrollList(mDevice, 0, 0, 100, 100, texture2DMenu, 8);
-            // scrollListSettings.AddTo(settingsMenu);
+            Texture2D texture2D = UIv2.Menu.CreateTexture2D(mDevice, 200, 30, pixel => Color.Black);
 
-            var scrollListRowCount = 1;
+            var nextLevelFilenameInputBox = new UIv2.Components.Inputbox(mDevice, 0, 0, 100, 4, texture2D, mGameScreen.mLevel.mLevelTitle == null ? "Next level filename" : mGameScreen.mLevel.mNextLevelFilename, mFont, Color.White);
+            nextLevelFilenameInputBox.AddTo(mechanicsMenu);
 
-            var rowHeight = 4;
-            var rowSpace = 5;
-            var buttonHeight = 5;
+            var levelTitleInputBox = new UIv2.Components.Inputbox(mDevice, 0, 5, 100, 4, texture2D, mGameScreen.mLevel.mLevelTitle == null ? "Title" : mGameScreen.mLevel.mLevelTitle, mFont, Color.White);
+            levelTitleInputBox.AddTo(mechanicsMenu);
 
-            var labelWidth = 35;
-            var sliderWidth = 30;
-            var valueWidth = 15;
-            var buttonWidth = 20;
+            var levelStoryInputBox = new UIv2.Components.Inputbox(mDevice, 0, 10, 100, 45, texture2D, mGameScreen.mLevel.mLevelStory == null ? "Story" : mGameScreen.mLevel.mLevelStory, mStoryFont, Color.White);
+            levelStoryInputBox.FontType = FontManager.FontType.Story;
+            levelStoryInputBox.AddTo(mechanicsMenu);
 
-            var labelX = 5;
-            var sliderX = 45;
-            var valueX = 80;
-            var buttonX = 40;
+            var spawnablePrimatesLabel = new UIv2.Components.Label(mDevice, 2, 56, 30, 4, "Spawnable primates: " + mGameScreen.mLevel.mSpawnablePrimatesCount, mFont, Color.White);
+            spawnablePrimatesLabel.AddTo(mechanicsMenu);
+
+            var spawnablePrimatesMinusButton = new UIv2.Components.Button(mDevice, 33, 56, 5, 4, texture2D, "-", mFont, Color.White);
+            spawnablePrimatesMinusButton.AddTo(mechanicsMenu);
+
+            spawnablePrimatesMinusButton.AddListener(MouseButtons.Left,
+                InputState.Pressed,
+                () =>
+                {
+                    mGameScreen.mLevel.mSpawnablePrimatesCount--;
+                    mGameScreen.mLevel.mSpawnablePrimatesCount = Math.Max(mGameScreen.mLevel.mSpawnablePrimatesCount, 0);
+                    spawnablePrimatesLabel.Text = "Spawnable primates: " + mGameScreen.mLevel.mSpawnablePrimatesCount;
+                    SoundManager.AddSound(mClickSound);
+                });
+
+            var spawnablePrimatesPlusButton = new UIv2.Components.Button(mDevice, 38, 56, 5, 4, texture2D, "+", mFont, Color.White);
+            spawnablePrimatesPlusButton.AddTo(mechanicsMenu);
+
+            spawnablePrimatesPlusButton.AddListener(MouseButtons.Left,
+                InputState.Pressed,
+                () =>
+                {
+                    mGameScreen.mLevel.mSpawnablePrimatesCount++;
+                    spawnablePrimatesLabel.Text = "Spawnable primates: " + mGameScreen.mLevel.mSpawnablePrimatesCount;
+                    SoundManager.AddSound(mClickSound);
+                });
+
+            var initialSilverbackLocationLabel = new UIv2.Components.Label(mDevice, 45, 56, 45, 4, "Silverback Location: " + mSilverbackLocationActor.ModelMatrix.Translation.ToString(), mFont, Color.White);
+            initialSilverbackLocationLabel.AddTo(mechanicsMenu);
+
+            var initialSilverbackLocationButton = new UIv2.Components.Button(mDevice, 91, 56, 8, 4, texture2D, "Change", mFont, Color.White);
+            initialSilverbackLocationButton.AddTo(mechanicsMenu);
+
+            initialSilverbackLocationButton.AddListener(MouseButtons.Left,
+                InputState.Pressed,
+                () =>
+                { 
+                    mGameScreen.mSelectMode = false;
+                    mGameScreen.mSelectedMesh = mSilverbackLocationMesh;
+                    mGameScreen.mSelectedActor = mSilverbackLocationActor;
+                    mGameScreen.mSetOnce = true;
+                    mMenuList.Remove(mMechanicsMenu);
+                    mMechanicsMenu = null;
+                    SoundManager.AddSound(mClickSound);                    
+                });
+
+            var hut1Label = new UIv2.Components.Label(mDevice, 2, 63, 10, 4, "Hut 1: ", mFont, Color.White);
+            hut1Label.AddTo(mechanicsMenu);
+
+            var hut1HealthpointsLabel = new UIv2.Components.Label(mDevice, 29, 63, 25, 4, "Healthpoints: " + (mHut1 == null ? 0 : mHut1.HP).ToString(), mFont, Color.White);
+            hut1HealthpointsLabel.AddTo(mechanicsMenu);
+
+            var hut1PositionButton = new UIv2.Components.Button(mDevice, 17, 63, 15, 4, texture2D, "Set position", mFont, Color.White);
+            hut1PositionButton.AddTo(mechanicsMenu);
+
+            hut1PositionButton.AddListener(MouseButtons.Left,
+                InputState.Pressed,
+                () =>
+                {
+                    if (mHut1 == null)
+                    {
+                        mHut1 = CreateHut();
+                    }
+                    hut1HealthpointsLabel.Text = "Healthpoints: 1";
+                    mGameScreen.mSelectMode = false;
+                    mGameScreen.mSelectedMesh = mHut1.Actor.mMesh;
+                    mGameScreen.mSelectedActor = mHut1.Actor;
+                    mGameScreen.mSetOnce = true;
+                    mMenuList.Remove(mMechanicsMenu);
+                    mMechanicsMenu = null;
+                    SoundManager.AddSound(mClickSound);
+                });
+
+
+            var hut1HealthpointsMinusButton = new UIv2.Components.Button(mDevice, 55, 63, 5, 4, texture2D, "-", mFont, Color.White);
+            hut1HealthpointsMinusButton.AddTo(mechanicsMenu);
+
+            hut1HealthpointsMinusButton.AddListener(MouseButtons.Left,
+                InputState.Pressed,
+                () =>
+                {
+                    if (mHut1 == null)
+                    {
+                        mHut1 = CreateHut();
+                    }
+                    mHut1.HP--;
+                    mHut1.HP = Math.Max(mHut1.HP, 1);
+                    hut1HealthpointsLabel.Text = "Healthpoints: " + mHut1.HP;
+                    SoundManager.AddSound(mClickSound);
+                });
+
+            var hut1HealthpointsPlusButton = new UIv2.Components.Button(mDevice, 60, 63, 5, 4, texture2D, "+", mFont, Color.White);
+            hut1HealthpointsPlusButton.AddTo(mechanicsMenu);
+
+            hut1HealthpointsPlusButton.AddListener(MouseButtons.Left,
+                InputState.Pressed,
+                () =>
+                {
+                    if (mHut1 == null)
+                    {
+                        mHut1 = CreateHut();
+                    }
+                    mHut1.HP++;
+                    hut1HealthpointsLabel.Text = "Healthpoints: " + mHut1.HP;
+                    SoundManager.AddSound(mClickSound);
+                });
+
+            var hut1DeleteButton = new UIv2.Components.Button(mDevice, 70, 63, 10, 4, texture2D, "Delete", mFont, Color.White);
+            hut1DeleteButton.AddTo(mechanicsMenu);
+
+            hut1DeleteButton.AddListener(MouseButtons.Left,
+                InputState.Pressed,
+                () =>
+                {
+                    if (mHut1 == null)
+                    {
+                        return;
+                    }
+                    mGameScreen.mLevel.Remove(mHut1.Actor);
+                    mHut1 = null;
+                    hut1HealthpointsLabel.Text = "Healthpoints: 0";
+                    SoundManager.AddSound(mClickSound);
+                });
+
+            var hut2Label = new UIv2.Components.Label(mDevice, 2, 68, 10, 4, "Hut 2: ", mFont, Color.White);
+            hut2Label.AddTo(mechanicsMenu);
+
+            var hut2HealthpointsLabel = new UIv2.Components.Label(mDevice, 29, 68, 25, 4, "Healthpoints: " + (mHut2 == null ? 0 : mHut2.HP).ToString(), mFont, Color.White);
+            hut2HealthpointsLabel.AddTo(mechanicsMenu);
+
+            var hut2PositionButton = new UIv2.Components.Button(mDevice, 17, 68, 15, 4, texture2D, "Set position", mFont, Color.White);
+            hut2PositionButton.AddTo(mechanicsMenu);
+
+            hut2PositionButton.AddListener(MouseButtons.Left,
+                InputState.Pressed,
+                () =>
+                {
+                    if (mHut2 == null)
+                    {
+                        mHut2 = CreateHut();
+                    }
+                    hut1HealthpointsLabel.Text = "Healthpoints: 1";
+                    mGameScreen.mSelectMode = false;
+                    mGameScreen.mSelectedMesh = mHut2.Actor.mMesh;
+                    mGameScreen.mSelectedActor = mHut2.Actor;
+                    mGameScreen.mSetOnce = true;
+                    mMenuList.Remove(mMechanicsMenu);
+                    mMechanicsMenu = null;
+                    SoundManager.AddSound(mClickSound);
+                });
+
+
+            var hut2HealthpointsMinusButton = new UIv2.Components.Button(mDevice, 55, 68, 5, 4, texture2D, "-", mFont, Color.White);
+            hut2HealthpointsMinusButton.AddTo(mechanicsMenu);
+
+            hut2HealthpointsMinusButton.AddListener(MouseButtons.Left,
+                InputState.Pressed,
+                () =>
+                {
+                    if (mHut2 == null)
+                    {
+                        mHut2 = CreateHut();
+                    }
+                    mHut2.HP--;
+                    mHut2.HP = Math.Max(mHut2.HP, 1);
+                    hut2HealthpointsLabel.Text = "Healthpoints: " + mHut2.HP;
+                    SoundManager.AddSound(mClickSound);
+                });
+
+            var hut2HealthpointsPlusButton = new UIv2.Components.Button(mDevice, 60, 68, 5, 4, texture2D, "+", mFont, Color.White);
+            hut2HealthpointsPlusButton.AddTo(mechanicsMenu);
+
+            hut2HealthpointsPlusButton.AddListener(MouseButtons.Left,
+                InputState.Pressed,
+                () =>
+                {
+                    if (mHut2 == null)
+                    {
+                        mHut2 = CreateHut();
+                    }
+                    mHut2.HP++;
+                    hut2HealthpointsLabel.Text = "Healthpoints: " + mHut2.HP;
+                    SoundManager.AddSound(mClickSound);
+                });
+
+            var hut2DeleteButton = new UIv2.Components.Button(mDevice, 70, 68, 10, 4, texture2D, "Delete", mFont, Color.White);
+            hut2DeleteButton.AddTo(mechanicsMenu);
+
+            hut2DeleteButton.AddListener(MouseButtons.Left,
+                InputState.Pressed,
+                () =>
+                {
+                    if (mHut2 == null)
+                    {
+                        return;
+                    }
+                    mGameScreen.mLevel.Remove(mHut2.Actor);
+                    mHut2 = null;
+                    hut2HealthpointsLabel.Text = "Healthpoints: 0";
+                    SoundManager.AddSound(mClickSound);
+                });
+
+            var hut3Label = new UIv2.Components.Label(mDevice, 2, 73, 10, 4, "Hut 3: ", mFont, Color.White);
+            hut3Label.AddTo(mechanicsMenu);
+
+            var hut3HealthpointsLabel = new UIv2.Components.Label(mDevice, 29, 73, 25, 4, "Healthpoints: " + (mHut3 == null ? 0 : mHut3.HP).ToString(), mFont, Color.White);
+            hut3HealthpointsLabel.AddTo(mechanicsMenu);
+
+            var hut3PositionButton = new UIv2.Components.Button(mDevice, 17, 73, 15, 4, texture2D, "Set position", mFont, Color.White);
+            hut3PositionButton.AddTo(mechanicsMenu);
+
+            hut3PositionButton.AddListener(MouseButtons.Left,
+                InputState.Pressed,
+                () =>
+                {
+                    if (mHut3 == null)
+                    {
+                        mHut3 = CreateHut();
+                    }
+                    hut3HealthpointsLabel.Text = "Healthpoints: 1";
+                    mGameScreen.mSelectMode = false;
+                    mGameScreen.mSelectedMesh = mHut3.Actor.mMesh;
+                    mGameScreen.mSelectedActor = mHut3.Actor;
+                    mGameScreen.mSetOnce = true;
+                    mMenuList.Remove(mMechanicsMenu);
+                    mMechanicsMenu = null;
+                    SoundManager.AddSound(mClickSound);
+                });
+
+
+            var hut3HealthpointsMinusButton = new UIv2.Components.Button(mDevice, 55, 73, 5, 4, texture2D, "-", mFont, Color.White);
+            hut3HealthpointsMinusButton.AddTo(mechanicsMenu);
+
+            hut3HealthpointsMinusButton.AddListener(MouseButtons.Left,
+                InputState.Pressed,
+                () =>
+                {
+                    if (mHut3 == null)
+                    {
+                        mHut3 = CreateHut();
+                    }
+                    mHut3.HP--;
+                    mHut3.HP = Math.Max(mHut3.HP, 1);
+                    hut3HealthpointsLabel.Text = "Healthpoints: " + mHut3.HP;
+                    SoundManager.AddSound(mClickSound);
+                });
+
+            var hut3HealthpointsPlusButton = new UIv2.Components.Button(mDevice, 60, 73, 5, 4, texture2D, "+", mFont, Color.White);
+            hut3HealthpointsPlusButton.AddTo(mechanicsMenu);
+
+            hut3HealthpointsPlusButton.AddListener(MouseButtons.Left,
+                InputState.Pressed,
+                () =>
+                {
+                    if (mHut3 == null)
+                    {
+                        mHut3 = CreateHut();
+                    }
+                    mHut3.HP++;
+                    hut3HealthpointsLabel.Text = "Healthpoints: " + mHut3.HP;
+                    SoundManager.AddSound(mClickSound);
+                });
+
+            var hut3DeleteButton = new UIv2.Components.Button(mDevice, 70, 73, 10, 4, texture2D, "Delete", mFont, Color.White);
+            hut3DeleteButton.AddTo(mechanicsMenu);
+
+            hut1DeleteButton.AddListener(MouseButtons.Left,
+                InputState.Pressed,
+                () =>
+                {
+                    if (mHut3 == null)
+                    {
+                        return;
+                    }
+                    mGameScreen.mLevel.Remove(mHut3.Actor);
+                    mHut3 = null;
+                    hut3HealthpointsLabel.Text = "Healthpoints: 0";
+                    SoundManager.AddSound(mClickSound);
+                });
+
+            var saveButton = new UIv2.Components.Button(mDevice,
+                35,
+                93,
+                30,
+                5,
+                texture2D,
+                "Save text changes",
+                mFont,
+                Color.White);
+            saveButton.AddTo(mechanicsMenu);
+            saveButton.AddListener(MouseButtons.Left,
+                InputState.Pressed,
+                () =>
+                {
+
+                    mGameScreen.mLevel.mNextLevelFilename = nextLevelFilenameInputBox.Text;
+                    mGameScreen.mLevel.mLevelTitle = levelTitleInputBox.Text;
+                    mGameScreen.mLevel.mLevelStory = levelStoryInputBox.Text;
+
+                });
 
             return mechanicsMenu;
 
+        }
+
+        private Hut CreateHut()
+        {
+            var hut = new Hut(mGameScreen.mLevel.mHutMesh,
+                            mGameScreen.mLevel.mLumberjackMesh,
+                            mGameScreen.mLevel.mDoubleAxeKillerMesh,
+                            mGameScreen.mLevel.mAxeMesh,
+                            mGameScreen.mLevel.mSilverback,
+                            mGameScreen.mLevel, 1, 15.0f, 30.0f, true);
+            hut.Actor.IActor = null;
+            mGameScreen.mLevel.Add(hut.Actor);
+            return hut;
         }
 
     }

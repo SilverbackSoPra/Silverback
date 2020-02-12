@@ -3,7 +3,8 @@ using Microsoft.Xna.Framework;
 
 namespace LevelEditor.Engine.Animation
 {
-    internal sealed class Animation
+    [Serializable()]
+    public sealed class Animation
     {
         public struct BoneKey
         {
@@ -13,12 +14,15 @@ namespace LevelEditor.Engine.Animation
 
         public string Path { get; set; }
 
-        public readonly string mName;
+        public string mName;
 
-        public readonly float mDuration;
-        public readonly float mTickPerSecond;
+        public float mDuration;
+        public float mTickPerSecond;
 
-        public readonly BoneKey[] mBoneKeys;
+        public BoneKey[] mBoneKeys;
+
+        private Animation()
+        { }
 
         public Animation(Assimp.Animation animation, Bone[] bones)
         {

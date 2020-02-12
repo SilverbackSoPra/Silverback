@@ -1,6 +1,6 @@
 ﻿namespace LevelEditor.Events
 {
-    class EventManager
+    internal class EventManager
     {
         public static UiEvent mUiEvent;
     }

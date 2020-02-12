@@ -4,6 +4,8 @@ using LevelEditor.Engine.Mesh;
 using LevelEditor.Engine.Postprocessing;
 using Microsoft.Xna.Framework;
 using System;
+using System.Runtime.Serialization;
+using System.Xml.Serialization;
 using LevelEditor.Collision;
 using LevelEditor.Pathfinding;
 
@@ -13,28 +15,30 @@ namespace LevelEditor.Engine
     /// The Scene class is used to represent a scene. This is useful
     /// if we want many actors in one place e.g for a level.
     /// </summary>
-    internal class Scene : IDisposable
+    [Serializable()]
+    public class Scene : IDisposable, ISerializable
     {
-
+        [XmlIgnore]
         public readonly List<ActorBatch> mActorBatches;
+        [XmlIgnore]
         public QuadTree<Actor> mQuadTree;
+        [XmlIgnore]
         public VisibilityGraph mVisibilityGraph;
+        [XmlIgnore]
         public VisibilityGraph mBruteVisibilityGraph;
 
         public readonly PostProcessing mPostProcessing;
         public readonly Sky mSky;
         public readonly Fog mFog;
 
-        public Terrain mTerrain;
-
-        
+        public Terrain mTerrain;        
 
         protected bool mDisposed = false;
 
         /// <summary>
         /// Constructs a <see cref="Scene"/>.
         /// </summary>
-        protected Scene()
+        public Scene()
         {
 
             mActorBatches = new List<ActorBatch>();
@@ -104,6 +108,13 @@ namespace LevelEditor.Engine
 
             var boolean = actorBatch?.Remove(actor);
 
+            var attached = actor.mAnimator.GetAttachedActors();
+
+            foreach(var attachedActor in attached)
+            {
+                Remove(attachedActor);
+            }
+
             if (actorBatch != null)
             {
                 if (actorBatch.mActors.Count == 0 && !actorBatch.mLock)
@@ -132,6 +143,13 @@ namespace LevelEditor.Engine
 
             var boolean = actorBatch?.Remove(actor);
 
+            var attached = actor.mAnimator.GetAttachedActors();
+
+            foreach (var attachedActor in attached)
+            {
+                Remove(attachedActor);
+            }
+
             if (actorBatch != null)
             {
                 if (actorBatch.mActors.Count == 0 && !actorBatch.mLock)
@@ -151,7 +169,7 @@ namespace LevelEditor.Engine
         /// </summary>
         /// <param name="camera"></param>
         /// <param name="gameTime">The current game time</param>
-        protected virtual void Update(Camera camera, GameTime gameTime)
+        public virtual void Update(Camera camera, GameTime gameTime)
         {
 
             camera.UpdateView();
@@ -227,5 +245,31 @@ namespace LevelEditor.Engine
 
         }
 
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("mActorBatches", mActorBatches);
+            info.AddValue("mQuadTree", mQuadTree);
+            info.AddValue("mVisibilityGraph", mVisibilityGraph);
+            info.AddValue("mBruteVisibilityGraph", mBruteVisibilityGraph);
+            info.AddValue("mBruteVisibilityGraph", mBruteVisibilityGraph);
+            info.AddValue("mPostProcessing", mPostProcessing);
+            info.AddValue("mSky", mSky);
+            info.AddValue("mFog", mFog);
+            info.AddValue("mTerrain", mTerrain);
+            info.AddValue("mDisposed", mDisposed);
+        }
+
+        public Scene(SerializationInfo info, StreamingContext context)
+        {
+            mActorBatches = (List<ActorBatch>)info.GetValue("mActorBatches", typeof(List<ActorBatch>));
+            mQuadTree = (QuadTree<Actor>)info.GetValue("mQuadTree", typeof(QuadTree<Actor>));
+            mVisibilityGraph = (VisibilityGraph)info.GetValue("mVisibilityGraph", typeof(VisibilityGraph));
+            mBruteVisibilityGraph = (VisibilityGraph)info.GetValue("mBruteVisibilityGraph", typeof(VisibilityGraph));
+            mPostProcessing = (PostProcessing)info.GetValue("mPostProcessing", typeof(PostProcessing));
+            mSky = (Sky)info.GetValue("mSky", typeof(Sky));
+            mFog = (Fog)info.GetValue("mFog", typeof(Fog));
+            mTerrain = (Terrain)info.GetValue("mTerrain", typeof(Terrain));
+            mDisposed = (bool)info.GetValue("mDisposed", typeof(bool));
+        }
     }
 }

@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
 namespace LevelEditor.Engine.Mesh
 {
@@ -6,13 +9,14 @@ namespace LevelEditor.Engine.Mesh
     /// <summary>
     /// 
     /// </summary>
-    internal sealed class ActorBatch
+    [Serializable()]
+    public sealed class ActorBatch: ISerializable
     {
-        public readonly List<Actor> mActors;
+        public List<Actor> mActors;
+        
+        public Mesh mMesh;
 
-        public readonly Mesh mMesh;
-
-        public readonly bool mLock;
+        public bool mLock;
 
         /// <summary>
         /// Represents a batch of actors which are using the same mesh.
@@ -23,6 +27,11 @@ namespace LevelEditor.Engine.Mesh
         {
             mMesh = mesh;
             mLock = lockBatch;
+            mActors = new List<Actor>();
+        }
+
+        public ActorBatch()
+        {
             mActors = new List<Actor>();
         }
 
@@ -43,6 +52,20 @@ namespace LevelEditor.Engine.Mesh
         public bool Remove(Actor actor)
         {
             return mActors.Remove(actor);
+        }
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("mActors", mActors);
+            info.AddValue("mMesh", mMesh);
+            info.AddValue("mLock", mLock);
+        }
+
+        public ActorBatch(SerializationInfo info, StreamingContext context)
+        {
+            mActors = (List<Actor>)info.GetValue("mActors", typeof(List<Actor>));
+            mMesh = (Mesh)info.GetValue("mMesh", typeof(Mesh));
+            mLock = (bool)info.GetValue("mLock", typeof(bool));
         }
     }
 }

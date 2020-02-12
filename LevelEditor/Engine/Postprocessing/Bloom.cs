@@ -1,6 +1,6 @@
 ﻿namespace LevelEditor.Engine.Postprocessing
 {
-    internal sealed class Bloom
+    public sealed class Bloom
     {
 
         public bool Activated { get; set; }

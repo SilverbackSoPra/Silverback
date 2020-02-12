@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace LevelEditor.UIv2
 {
-    internal interface IDrawable2D
+    public interface IDrawable2D
     {
         void Render(SpriteBatch batch);
 

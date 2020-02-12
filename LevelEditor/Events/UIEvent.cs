@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace LevelEditor.Events
 {
-    class UiEvent
+    internal class UiEvent
     {
         private static List<Func<string, string>> sMember = new List<Func<string, string>>();
 

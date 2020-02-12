@@ -5,13 +5,13 @@ using Keys = Microsoft.Xna.Framework.Input.Keys;
 
 namespace LevelEditor.Events
 {
-    enum EventType
+    internal enum EventType
     {
         Mouse,
         Keyboard
     }
 
-    sealed class Event
+    internal sealed class Event
     {
         public readonly Keys mKey;
         public readonly MouseButtons mMouseButton;

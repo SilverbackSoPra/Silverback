@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using LevelEditor.Collision;
@@ -9,27 +10,47 @@ using Microsoft.Xna.Framework;
 
 namespace LevelEditor.Pathfinding
 {
-    class VisibilityGraph
+    [Serializable()]
+    public class VisibilityGraph: ISerializable
     {
+
+        public static List<Edge> mDrawable = new List<Edge>();
 
         public List<Edge> mEdges;
         public List<Vertex> mVertices;
 
         private List<Edge> mObstacleEdges;
+        private List<CollisionRectangle> mCollision;
 
-        public VisibilityGraph(List<CollisionRectangle> staticCollisionRectangles, bool bruteForce)
+        public VisibilityGraph(List<CollisionRectangle> staticCollisionRectangles, Rectangle boundary, float offset, bool bruteForce)
         {
 
             // We should instead use arrays for better performance.
             // Especially because foreach loops are way slower when using lists
             mVertices = new List<Vertex>();
-
+            mCollision = staticCollisionRectangles;
             mObstacleEdges = new List<Edge>();
             var edgesHashSet = new HashSet<Edge>(new CompareEdgeVertices());
+            var verticesDictionary = new Dictionary<Vector2, Vertex>();
+
+            mCollision = new List<CollisionRectangle>();
 
             foreach (var rectangle in staticCollisionRectangles)
             {
-                
+
+                var midPoint = rectangle.V1Transformed + (rectangle.V2Transformed - rectangle.V1Transformed) * 0.5f + (rectangle.V3Transformed - rectangle.V1Transformed) * 0.5f;
+                var v1 = rectangle.V1Transformed + Vector2.Normalize((rectangle.V1Transformed - midPoint)) * offset;
+                var v2 = rectangle.V2Transformed + Vector2.Normalize((rectangle.V2Transformed - midPoint)) * offset;
+                var v3 = rectangle.V3Transformed + Vector2.Normalize((rectangle.V3Transformed - midPoint)) * offset;
+
+                mCollision.Add(new CollisionRectangle(v1, v2, v3));
+
+            }
+
+
+            foreach (var rectangle in mCollision)
+            {
+
                 var v1 = new Vertex(rectangle.V1Transformed, rectangle);
                 var v2 = new Vertex(rectangle.V2Transformed, rectangle);
                 var v3 = new Vertex(rectangle.V3Transformed, rectangle);
@@ -62,6 +83,69 @@ namespace LevelEditor.Pathfinding
                 mVertices.Add(v3);
                 mVertices.Add(v4);
 
+                if (!verticesDictionary.ContainsKey(v1.Position))
+                {
+                    verticesDictionary.Add(v1.Position, v1);
+                }
+                if (!verticesDictionary.ContainsKey(v2.Position))
+                {
+                    verticesDictionary.Add(v2.Position, v2);
+                }
+                if (!verticesDictionary.ContainsKey(v3.Position))
+                {
+                    verticesDictionary.Add(v3.Position, v3);
+                }
+                if (!verticesDictionary.ContainsKey(v4.Position))
+                {
+                    verticesDictionary.Add(v4.Position, v4);
+                }
+
+            }
+
+            // Now we're searching for vertices which might be inside another rectangle
+            // These vertices shouldn't be considered when we are constructing the graph later
+            var quadTree = new QuadTree<CollisionRectangle>(boundary, 4, 7);
+
+            // Insert the rectangles into the tree
+            foreach (var rectangle in mCollision)
+            {
+                quadTree.Insert(rectangle, rectangle.GetAxisAlignedRectangle(1));
+            }
+
+            // Now foreach rectangle get the nearest rectangles which might collide with it
+            foreach (var rectangle in mCollision)
+            {
+                var list = quadTree.QueryRectangle(rectangle.GetAxisAlignedRectangle(1));
+                foreach (var r in list)
+                {
+
+                    if (r == rectangle)
+                    {
+                        continue;
+                    }
+
+                    // If there is an intersection, check which points are inside the other rectangle
+                    if (verticesDictionary.ContainsKey(r.V1Transformed))
+                    {
+                        var v = verticesDictionary[r.V1Transformed];
+                        v.Connectable = v.Connectable == true ? !rectangle.PointInside(v.Position) : false;
+                    }
+                    if (verticesDictionary.ContainsKey(r.V2Transformed))
+                    {
+                        var v = verticesDictionary[r.V2Transformed];
+                        v.Connectable = v.Connectable == true ? !rectangle.PointInside(v.Position) : false;
+                    }
+                    if (verticesDictionary.ContainsKey(r.V3Transformed))
+                    {
+                        var v = verticesDictionary[r.V3Transformed];
+                        v.Connectable = v.Connectable == true ? !rectangle.PointInside(v.Position) : false;
+                    }
+                    if (verticesDictionary.ContainsKey(r.V4Transformed))
+                    {
+                        var v = verticesDictionary[r.V4Transformed];
+                        v.Connectable = v.Connectable == true ? !rectangle.PointInside(v.Position) : false;
+                    }
+                }
             }
 
             var vertices = mVertices.ToArray();
@@ -71,7 +155,7 @@ namespace LevelEditor.Pathfinding
 
                 if (!bruteForce)
                 {
-                    CalculateVisibleVertices(vertex, ref edgesHashSet);
+                    CalculateVisibleVertices(vertex, mVertices, ref edgesHashSet);
                 }
                 else
                 {
@@ -111,57 +195,54 @@ namespace LevelEditor.Pathfinding
             var edgeHashSet = new HashSet<Edge>(new CompareEdgeVertices());
 
             // We dont care about the rectanlge
-            Vertex startVertex = new Vertex(new Vector2(start.X, start.Z), mVertices[0].ParentRectangle);
-            Vertex destinationVertex = new Vertex(new Vector2(destination.X, destination.Z), mVertices[0].ParentRectangle);
-            
-            CalculateVisibleVertices(startVertex, ref edgeHashSet);
-            CalculateVisibleVertices(destinationVertex, ref edgeHashSet);
+            var rectagle = new CollisionRectangle(new Vector2(-1.0f), new Vector2(1.0f), new Vector2(1.0f, -1.0f));
+            Vertex startVertex = new Vertex(new Vector2(start.X, start.Z), rectagle);
+            Vertex destinationVertex = new Vertex(new Vector2(destination.X, destination.Z), rectagle);
+
+            mVertices.Add(startVertex);
+            mVertices.Add(destinationVertex);
+            CalculateVisibleVertices(startVertex, mVertices, ref edgeHashSet);      
+            CalculateVisibleVertices(destinationVertex, mVertices, ref edgeHashSet);
+            mVertices.Remove(startVertex);
+            mVertices.Remove(destinationVertex);
 
             var directEdge = new Edge(startVertex, destinationVertex, 0.0f);
-
-            startVertex.mDestination = destinationVertex;
 
             // If there exists a direct path, we dont have to use A*
             if (edgeHashSet.Contains(directEdge))
             {
                 startVertex.mNextVertex = destinationVertex;
                 startVertex.mNextVertex.mPreviousVertex = startVertex;
-                return startVertex;
-            }
-
-            // Now combine the hash set with mEdges and calculate the path
-            // Note: We shouldn't insert the hash set into mEdges. Instead we
-            // create a new list from edgeHashSet and append mEdges to it
-            var edgeList = edgeHashSet.ToList();
-            edgeList.AddRange(mEdges);
-
-            // Now calculate the path with A*
-            startVertex = AStar.Search(startVertex,
-                destinationVertex,
-                mVertices,
-                edgeList,
-                (vertex, edge) =>
+                // We need to remove the vertices which we added
+                foreach (var vertex in mVertices)
                 {
-                    if (edge.V1 == vertex)
-                    {
-                        return edge.V2;
-                    }
-                    if (edge.V2 == vertex)
-                    {
-                        return edge.V1;
-                    }
+                    vertex.mAdjacentVertices.Remove(startVertex);
+                    vertex.mAdjacentVertices.Remove(destinationVertex);
+                }
+                return destinationVertex;
+            }
+        
+            // Now calculate the path with A*
+            startVertex = AStar.Search(startVertex, destinationVertex, mVertices);
 
-                    return null;
-                });
-
-
-
-            return startVertex;
+            // We need to remove the vertices which we added
+            foreach (var vertex in mVertices)
+            {
+                vertex.mAdjacentVertices.Remove(startVertex);
+                vertex.mAdjacentVertices.Remove(destinationVertex);
+            }
+                
+            return startVertex.mNextVertex;
 
         }
 
-        private void CalculateVisibleVertices(Vertex vertex, ref HashSet<Edge> edgesHashSet)
+        private void CalculateVisibleVertices(Vertex vertex, List<Vertex> vertices,  ref HashSet<Edge> edgesHashSet)
         {
+
+            if (!vertex.Connectable)
+            {
+                return;
+            }
 
             var center = vertex;
 
@@ -172,16 +253,16 @@ namespace LevelEditor.Pathfinding
 
             // Sort the vertices in angular order
             // Calculate the angles to the center vertex
-            foreach (var v in mVertices)
+            foreach (var v in vertices)
             {
                 v.AngleToCenter = center.Angle(v);
+                v.DistanceToCenter = Vector2.DistanceSquared(center.Position, v.Position);
             }
 
-            mVertices.Sort(new CompareVertexAngle());
+            vertices.Sort(new CompareVertexAngle());
 
             // Create the scanline with the vertex that has the smallest angle
-            var p = new Vertex(new Vector2(mVertices[0].Position.X, mVertices[0].Position.Y), center.ParentRectangle);
-            var scanLine = new Edge(center, p, 0.0f);
+            var scanLine = new Edge(center, vertices[0], 0.0f);
 
             var set = new SortedSet<Edge>(new CompareEdgeDistance());
 
@@ -206,11 +287,16 @@ namespace LevelEditor.Pathfinding
             // lie on the clockwise side of the scan line and delete
             // all adjacent egdes of the vertex which are on the 
             // counter clockwise side.
-            foreach (var v in mVertices)
+            foreach (var v in vertices)
             {
 
                 var edge = new Edge(center, v, 0.0f);
                 bool locked = false;
+
+                if (!v.Connectable)
+                {
+                    locked = true;
+                }
 
                 // Check if the edge lies in the rectangle of its parents
                 // If this is the case we dont want the edge to be added to
@@ -239,6 +325,8 @@ namespace LevelEditor.Pathfinding
                     if (set.Min == null)
                     {
                         edge.Weight = Vector2.Distance(center.Position, v.Position);
+                        center.mAdjacentVertices.Add(v);
+                        v.mAdjacentVertices.Add(center);
                         edgesHashSet.Add(edge);
                     }
                     else
@@ -260,9 +348,16 @@ namespace LevelEditor.Pathfinding
                         if (!intersection)
                         {
                             edge.Weight = Vector2.Distance(center.Position, v.Position);
+                            center.mAdjacentVertices.Add(v);
+                            v.mAdjacentVertices.Add(center);
                             edgesHashSet.Add(edge);
                         }
                     }
+                }
+
+                if (v.Edge1 == null && v.Edge2 == null)
+                {
+                    continue;
                 }
 
                 var incidentVertex1 = v.Edge1.GetOtherVertex(v);
@@ -325,6 +420,14 @@ namespace LevelEditor.Pathfinding
                 {
                     return 1;
                 }
+                if (x.DistanceToCenter < y.DistanceToCenter)
+                {
+                    return -1;
+                }
+                if (x.DistanceToCenter > y.DistanceToCenter)
+                {
+                    return 1;
+                }
                 return 0;
             }
         }
@@ -358,11 +461,48 @@ namespace LevelEditor.Pathfinding
             }
         }
 
+        private class CompareVertices : IEqualityComparer<Vertex>
+        {
+            public bool Equals(Vertex x, Vertex y)
+            {
+                return (x.Position == y.Position);
+            }
+
+            public int GetHashCode(Vertex obj)
+            {
+                return obj.Position.GetHashCode();
+            }
+        }
+
         private int CheckVectorSide(Vector2 v1, Vector2 v2, float x, float y)
         {
             return Math.Sign((v2.X - v1.X) * (y - v1.Y) - (v2.Y - v1.Y) * (x - v1.X));
         }
 
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("mDrawable", mDrawable);
+            info.AddValue("mEdges", mEdges);
+            info.AddValue("mVertices", mVertices);
+            info.AddValue("mObstacleEdges", mObstacleEdges);
+            /*
+                public static List<Edge> mDrawable = new List<Edge>();
+
+                public List<Edge> mEdges;
+                public List<Vertex> mVertices;
+
+                private List<Edge> mObstacleEdges;
+             */
+        }
+
+        public VisibilityGraph(SerializationInfo info, StreamingContext context)
+        {
+            mDrawable = (List<Edge>)info.GetValue("mDrawable", typeof(List<Edge>));
+            mEdges = (List<Edge>)info.GetValue("mEdges", typeof(List<Edge>));
+            mVertices = (List<Vertex>)info.GetValue("mVertices", typeof(List<Vertex>));
+            mObstacleEdges = (List<Edge>)info.GetValue("mObstacleEdges", typeof(List<Edge>));
+        }
+        public VisibilityGraph() { }
     }
 
 }

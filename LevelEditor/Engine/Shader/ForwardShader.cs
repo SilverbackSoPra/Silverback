@@ -125,7 +125,7 @@ namespace LevelEditor.Engine.Shader
 
             mDiffuseMapParameter?.SetValue(material.mDiffuseMap);
 
-            mHasDiffuseMapParameter?.SetValue((material.mDiffuseMap != null));
+            mHasDiffuseMapParameter?.SetValue(material.mDiffuseMap != null);
             mDiffuseColorParameter.SetValue(material.mDiffuseColor);
 
             mSpecularIntensityParameter?.SetValue(material.mSpecularIntensitiy);

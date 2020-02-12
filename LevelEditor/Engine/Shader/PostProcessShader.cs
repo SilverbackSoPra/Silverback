@@ -7,6 +7,7 @@ namespace LevelEditor.Engine.Shader
     {
 
         private readonly EffectParameter mAlbedoMapParameter;
+        private readonly EffectParameter mBloomPassesParameter;
         private readonly EffectParameter mBloom1Parameter;
         private readonly EffectParameter mBloom2Parameter;
         private readonly EffectParameter mBloom3Parameter;
@@ -16,6 +17,7 @@ namespace LevelEditor.Engine.Shader
         
 
         public Texture2D mAlbedoMap;
+        public float mBloomPasses;
         public Texture2D mBloom1;
         public Texture2D mBloom2;
         public Texture2D mBloom3;
@@ -29,6 +31,7 @@ namespace LevelEditor.Engine.Shader
 
             mAlbedoMapParameter = mShader.Parameters["albedoMap"];
 
+            mBloomPassesParameter = mShader.Parameters["bloomPasses"];
             mBloom1Parameter = mShader.Parameters["bloom1"];
             mBloom2Parameter = mShader.Parameters["bloom2"];
             mBloom3Parameter = mShader.Parameters["bloom3"];
@@ -44,6 +47,7 @@ namespace LevelEditor.Engine.Shader
 
             mAlbedoMapParameter.SetValue(mAlbedoMap);
 
+            mBloomPassesParameter.SetValue(mBloomPasses);
             mBloom1Parameter.SetValue(mBloom1);
             mBloom2Parameter.SetValue(mBloom2);
             mBloom3Parameter.SetValue(mBloom3);

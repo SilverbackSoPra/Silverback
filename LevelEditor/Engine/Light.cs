@@ -6,7 +6,7 @@ namespace LevelEditor.Engine
     /// <summary>
     /// Represents a light which can be added to a scene.
     /// </summary>
-    internal sealed class Light
+    public sealed class Light
     {
 
         public Vector3 mLocation;
@@ -27,8 +27,8 @@ namespace LevelEditor.Engine
             float ambient = 0.2f)
         {
 
-            mLocation = (location == default(Vector3)) ? new Vector3(0.0f, 10000.0f, 0.0f) : location;
-            mColor = (color == default(Vector3)) ? new Vector3(1.0f) : color; 
+            mLocation = location == default(Vector3) ? new Vector3(0.0f, 10000.0f, 0.0f) : location;
+            mColor = color == default(Vector3) ? new Vector3(1.0f) : color; 
 
             mAmbient = ambient;
 

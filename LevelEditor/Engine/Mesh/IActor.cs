@@ -7,7 +7,7 @@ namespace LevelEditor.Engine.Mesh
     /// <summary>
     /// Used to add any class in a scene instance.
     /// </summary>
-    interface IActor
+    public interface IActor
     {
 
         /// <summary>

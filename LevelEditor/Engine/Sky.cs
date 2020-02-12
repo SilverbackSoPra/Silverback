@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 
 namespace LevelEditor.Engine
 {
-    internal sealed class Sky
+    public sealed class Sky
     {
 
         public Light Light { get; }

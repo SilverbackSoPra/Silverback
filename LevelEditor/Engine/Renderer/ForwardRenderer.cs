@@ -115,7 +115,7 @@ namespace LevelEditor.Engine.Renderer
             }
 
             shader.mFogColor = scene.mFog.mColor;
-            shader.mFogDistance = scene.mFog.mDistance;
+            shader.mFogDistance = Math.Min(scene.mFog.mDistance, camera.mFarPlane - 10.0f);
 
             shader.Apply();
 
@@ -138,7 +138,7 @@ namespace LevelEditor.Engine.Renderer
                 }
 
                 mGraphicsDevice.SetVertexBuffer(actorBatch.mMesh.VertexBuffer);
-                mGraphicsDevice.Indices = (actorBatch.mMesh.IndexBuffer);
+                mGraphicsDevice.Indices = actorBatch.mMesh.IndexBuffer;
 
                 foreach (var subData in meshData.mSubDatas)
                 {

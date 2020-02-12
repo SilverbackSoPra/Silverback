@@ -12,7 +12,7 @@ namespace LevelEditor.UIv2.Components
     /// <inheritdoc>
     ///     <cref></cref>
     /// </inheritdoc>
-    internal sealed class ScrollList: IDrawable2D, IMenuComponent
+    public sealed class ScrollList: IDrawable2D, IMenuComponent
     {
         private bool mIsVisible;
 
@@ -114,7 +114,7 @@ namespace LevelEditor.UIv2.Components
                         {
                             // Offset
                             var size = elem.GetSize();
-                            size.Offset(0, (-1) * mScrollSpeed);
+                            size.Offset(0, -1 * mScrollSpeed);
                             elem.SetSize(size);
                             // Draw
                             if (elem.GetSize().Y < mSize.Y || elem.GetSize().Y + elem.GetSize().Height > mSize.Y + mSize.Height)
@@ -167,12 +167,12 @@ namespace LevelEditor.UIv2.Components
             // Adjust position
             mSize.X = m.Size.Width * mRelativePosition.X / 100 + m.Size.X;
             mSize.Y = m.Size.Height * mRelativePosition.Y / 100 + m.Size.Y;
-            mSize.Width = (m.Size.Width * mRelativePosition.Width / 100) * 95 / 100;
+            mSize.Width = m.Size.Width * mRelativePosition.Width / 100 * 95 / 100;
             mSize.Height = m.Size.Height * mRelativePosition.Height / 100;
 
             mScrollBar.X = mSize.X + mSize.Width;
             mScrollBar.Y = mSize.Y;
-            mScrollBar.Width = (m.Size.Width * mRelativePosition.Width / 100) * 5 / 100;
+            mScrollBar.Width = m.Size.Width * mRelativePosition.Width / 100 * 5 / 100;
             mScrollBar.Height = mSize.Height;
 
             mScrollBarPoint.X = mScrollBar.X;

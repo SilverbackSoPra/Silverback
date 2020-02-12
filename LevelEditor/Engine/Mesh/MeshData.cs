@@ -1,18 +1,19 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
+using System.Xml.Serialization;
 using LevelEditor.Collision;
 using LevelEditor.Engine.Animation;
 using LevelEditor.Engine.Helper;
 
 namespace LevelEditor.Engine.Mesh
 {
-
-
     /// <summary>
     /// Contains all the data of a mesh like textures or vertices.
     /// </summary>
-    internal sealed class MeshData
+    [Serializable()]
+    public sealed class MeshData
     {
 
         public struct SubData
@@ -25,10 +26,13 @@ namespace LevelEditor.Engine.Mesh
         }
 
         // We use the normal vertices when the model isn't skinned
+        [XmlIgnore]
         public VertexPositionTexture[] mVertices;
         // We use the extended vertices if the model is skinned
+        [XmlIgnore]
         public VertexPositionTextureSkinned[] mVerticesExt;
 
+        [XmlIgnore]
         public int[] mIndices;
 
         public PrimitiveType mPrimitiveType;
@@ -37,7 +41,7 @@ namespace LevelEditor.Engine.Mesh
         public readonly List<Material> mMaterials;
         public readonly List<SubData> mSubDatas;
 
-        public readonly List<Animation.Animation> mAnimations;
+        public List<Animation.Animation> mAnimations;
         public Bone[] mBones;
         public bool mIsSkinned;
 
@@ -73,7 +77,7 @@ namespace LevelEditor.Engine.Mesh
             mIsTerrain = false;
 
         }
-
+        
     }
 
 }

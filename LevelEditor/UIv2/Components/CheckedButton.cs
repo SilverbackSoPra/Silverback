@@ -22,7 +22,7 @@ namespace LevelEditor.UIv2.Components
         // Text
         private Vector2 mTextSize;
         private readonly Color mTextColor;
-        private readonly SpriteFont mFont;
+        private SpriteFont mFont;
         private readonly List<Event> mEvents;
 
         private GraphicsDevice mGraphicsDevice;
@@ -31,6 +31,25 @@ namespace LevelEditor.UIv2.Components
 
         private bool mChecked;
 
+        public FontManager.FontType mFontType;
+
+        public FontManager.FontType FontType
+        {
+            get { return mFontType; }
+            set
+            {
+                if (value != mFontType)
+                {
+                    mFont = FontManager.Get(value, mGraphicsDevice.Viewport.Width, mGraphicsDevice.Viewport.Height);
+                }
+                mFontType = value;
+
+            }
+        }
+
+        private int mWindowWidth;
+        private int mWindowHeight;
+        
         public CheckedButton(GraphicsDevice device, int xPositionInPercent, int yPositionInPercent, int widthInPercent, int heightInPercent, Texture2D texture, Texture2D textureChecked, string text, SpriteFont font, Color textColor, bool isChecked)
         {
             mGraphicsDevice = device;
@@ -50,7 +69,9 @@ namespace LevelEditor.UIv2.Components
             mEvents = new List<Event>();
 
             mChecked = isChecked;
-
+            FontType = FontManager.FontType.Default;
+            mWindowWidth = mGraphicsDevice.Viewport.Width;
+            mWindowHeight = mGraphicsDevice.Viewport.Height;
         }
 
         ////////////////////
@@ -135,6 +156,15 @@ namespace LevelEditor.UIv2.Components
             size.Height = mRelativePosition.Height * height / 100;
 
             mSize = size;
+
+            if (width != mWindowWidth || height != mWindowHeight)
+            {
+                mFont = FontManager.Get(mFontType, mGraphicsDevice.Viewport.Width, mGraphicsDevice.Viewport.Height);
+            }
+
+            mWindowWidth = width;
+            mWindowHeight = height;
+
 
             // Update the text size
             mTextSize.X = mSize.X + mSize.Width / 2.0f - mFont.MeasureString(mText).X / 2.0f;

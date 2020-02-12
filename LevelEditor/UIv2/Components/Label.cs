@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Mime;
+using System.Runtime.Serialization;
 using System.Windows.Forms;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -7,7 +9,8 @@ using Keys = Microsoft.Xna.Framework.Input.Keys;
 
 namespace LevelEditor.UIv2.Components
 {
-    sealed class Label: IDrawable2D, IMenuComponent
+    [Serializable]
+    public sealed class Label: IDrawable2D, IMenuComponent, ISerializable
     {
         private bool mIsVisible;
         private string mText;
@@ -16,6 +19,25 @@ namespace LevelEditor.UIv2.Components
         private List<Vector2> mTextSizeList;
 
         public bool mAutoBreak;
+
+        private FontManager.FontType mFontType;
+
+        public FontManager.FontType FontType
+        {
+            get { return mFontType; }
+            set
+            {
+                if (value != mFontType)
+                {
+                    mFont = FontManager.Get(value, mGraphicsDevice.Viewport.Width, mGraphicsDevice.Viewport.Height);
+                }
+                mFontType = value;
+
+            }
+        }
+
+        private int mWindowWidth;
+        private int mWindowHeight;
 
         public string Text
         {
@@ -67,7 +89,7 @@ namespace LevelEditor.UIv2.Components
         // Text
         private Vector2 mTextSize;
         public Color mTextColor;
-        private readonly SpriteFont mFont;
+        private SpriteFont mFont;
 
         private GraphicsDevice mGraphicsDevice;
         private readonly Rectangle mRelativePosition;
@@ -83,7 +105,7 @@ namespace LevelEditor.UIv2.Components
             mRelativePosition.Y = yPositionInPercent;
             mRelativePosition.Width = widthInPercent;
             mRelativePosition.Height = heightInPercent;
-
+            
             mTextList = new List<string>();
             mTextSizeList = new List<Vector2>();
 
@@ -95,6 +117,9 @@ namespace LevelEditor.UIv2.Components
             mAutoBreak = true;
 
             mDebugTexture2D = Menu.CreateTexture2D(mGraphicsDevice, 200, 100, pixel => Color.Aqua);
+            FontType = FontManager.FontType.Default;
+            mWindowWidth = mGraphicsDevice.Viewport.Width;
+            mWindowHeight = mGraphicsDevice.Viewport.Height;
         }
 
         public void Render(SpriteBatch batch)
@@ -170,6 +195,14 @@ namespace LevelEditor.UIv2.Components
 
             mSize = size;
 
+            if (width != mWindowWidth || height != mWindowHeight)
+            {
+                mFont = FontManager.Get(mFontType, mGraphicsDevice.Viewport.Width, mGraphicsDevice.Viewport.Height);
+            }
+
+            mWindowWidth = width;
+            mWindowHeight = height;
+
             // Update the text size
             Text = mText;
         }
@@ -212,7 +245,7 @@ namespace LevelEditor.UIv2.Components
                 for (var i = 0; i < mTextList.Count && i < mTextSizeList.Count; i++)
                 {
                     // var y = mSize.Y + mSize.Height / mTextSizeList.Count * (i + 1) - mFont.MeasureString(Text).Y / 2.0f;
-                    mTextSizeList[i] = new Vector2(mSize.X + mSize.Width / 2.0f - mFont.MeasureString(mTextList[i]).X / 2.0f, mSize.Y + mSize.Height / mTextSizeList.Count * (i));
+                    mTextSizeList[i] = new Vector2(mSize.X + mSize.Width / 2.0f - mFont.MeasureString(mTextList[i]).X / 2.0f, mSize.Y + mSize.Height / mTextSizeList.Count * i);
                 }
             }
             else
@@ -240,5 +273,89 @@ namespace LevelEditor.UIv2.Components
             mAutoBreak = true;
             Text = mText;
         }
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("mIsVisible", mIsVisible);
+            info.AddValue("mText", mText);
+            info.AddValue("mTextList", mTextList);
+            info.AddValue("mTextSizeList", mTextSizeList);
+            info.AddValue("mAutoBreak", mAutoBreak);
+            info.AddValue("mSize", mSize);
+            info.AddValue("mTextSize", mTextSize);
+            info.AddValue("mTextColor", mTextColor);
+            info.AddValue("mFont", mFont);
+            info.AddValue("mGraphicsDevice", mGraphicsDevice);
+            info.AddValue("mRelativePosition", mRelativePosition);
+            info.AddValue("mParentMenu", mParentMenu);
+            info.AddValue("mDebugTexture2D", mDebugTexture2D);
+            /*
+                private bool mIsVisible;
+                private string mText;
+
+                private List<string> mTextList;
+                private List<Vector2> mTextSizeList;
+
+                public bool mAutoBreak;
+
+                private Rectangle mSize;
+
+                // Text
+                private Vector2 mTextSize;
+                public Color mTextColor;
+                private readonly SpriteFont mFont;
+
+                private GraphicsDevice mGraphicsDevice;
+                private readonly Rectangle mRelativePosition;
+                private Menu mParentMenu;
+
+
+                private Texture2D mDebugTexture2D;
+             */
+        }
+
+        public Label(SerializationInfo info, StreamingContext context)
+        {
+            mIsVisible = (bool)info.GetValue("mIsVisible", typeof(bool));
+            mText = (string)info.GetValue("mText", typeof(string));
+            mTextList = (List<string>)info.GetValue("mTextList", typeof(List<string>));
+            mTextSizeList = (List<Vector2>)info.GetValue("mTextSizeList", typeof(Vector2));
+            mAutoBreak = (bool)info.GetValue("mAutoBreak", typeof(bool));
+            mSize = (Rectangle)info.GetValue("mSize", typeof(Rectangle));
+            mTextSize = (Vector2)info.GetValue("mTextSize", typeof(Vector2));
+            mTextColor = (Color)info.GetValue("mTextColor", typeof(Color));
+            mFont = (SpriteFont)info.GetValue("mFont", typeof(SpriteFont));
+            mGraphicsDevice = (GraphicsDevice)info.GetValue("mGraphicsDevice", typeof(GraphicsDevice));
+            mRelativePosition = (Rectangle)info.GetValue("mRelativePosition", typeof(Rectangle));
+            mParentMenu = (Menu)info.GetValue("mParentMenu", typeof(Menu));
+            mDebugTexture2D = (Texture2D)info.GetValue("mDebugTexture2D", typeof(Texture2D));
+            /*
+                private bool mIsVisible;
+                private string mText;
+
+                private List<string> mTextList;
+                private List<Vector2> mTextSizeList;
+
+                public bool mAutoBreak;
+
+                private Rectangle mSize;
+
+                // Text
+                private Vector2 mTextSize;
+                public Color mTextColor;
+                private readonly SpriteFont mFont;
+
+                private GraphicsDevice mGraphicsDevice;
+                private readonly Rectangle mRelativePosition;
+                private Menu mParentMenu;
+
+
+                private Texture2D mDebugTexture2D;
+             */
+        }
+
+        public Label()
+        { }
+
     }
 }

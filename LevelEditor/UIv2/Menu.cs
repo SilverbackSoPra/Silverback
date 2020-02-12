@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using LevelEditor.Events;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -7,7 +8,8 @@ using Microsoft.Xna.Framework.Input;
 
 namespace LevelEditor.UIv2
 {
-    sealed class Menu : IDrawable2D
+    [Serializable()]
+    public sealed class Menu : IDrawable2D, ISerializable
     {
         public readonly List<IDrawable2D> mElementList;
         public bool mIsVisible;
@@ -190,5 +192,72 @@ namespace LevelEditor.UIv2
 
             return texture;
         }
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            // info.AddValue("mElementList", mElementList);
+            info.AddValue("mIsVisible", mIsVisible);
+            info.AddValue("Size", Size);
+            info.AddValue("mRelativePosition", mRelativePosition);
+            info.AddValue("mScreenWidth", mScreenWidth);
+            info.AddValue("mScreenHeight", mScreenHeight);
+            info.AddValue("mSolid", mSolid);
+            info.AddValue("mHasBackground", mHasBackground);
+            info.AddValue("mBackgorundTexture2D", mBackgorundTexture2D);
+            info.AddValue("mBackgroundSizeRelative", mBackgroundSizeRelative);
+            info.AddValue("mBackgroundSize", mBackgroundSize);
+            /*
+                public readonly List<IDrawable2D> mElementList;
+                public bool mIsVisible;
+
+                public Rectangle Size { get; private set; }
+
+                private readonly Rectangle mRelativePosition;
+                private int mScreenWidth;
+                private int mScreenHeight;
+
+                private bool mSolid;
+
+                // Background
+                private bool mHasBackground;
+                private Texture2D mBackgorundTexture2D;
+                private Rectangle mBackgroundSizeRelative;
+                private Rectangle mBackgroundSize;
+             */
+        }
+
+        public Menu(SerializationInfo info, StreamingContext context)
+        {
+            // mElementList = (List<IDrawable2D>)info.GetValue("mElementList", typeof(List<IDrawable2D>));
+            mIsVisible = (bool)info.GetValue("mIsVisible", typeof(bool));
+            Size = (Rectangle)info.GetValue("Size", typeof(Rectangle));
+            mRelativePosition = (Rectangle)info.GetValue("mRelativePosition", typeof(Rectangle));
+            mScreenWidth = (int)info.GetValue("mScreenWidth", typeof(int));
+            mScreenHeight = (int)info.GetValue("mScreenHeight", typeof(int));
+            mSolid = (bool)info.GetValue("mSolid", typeof(bool));
+            mHasBackground = (bool)info.GetValue("mHasBackground", typeof(bool));
+            mBackgorundTexture2D = (Texture2D)info.GetValue("mBackgorundTexture2D", typeof(Texture2D));
+            mBackgroundSizeRelative = (Rectangle)info.GetValue("mBackgroundSizeRelative", typeof(Rectangle));
+            mBackgroundSize = (Rectangle)info.GetValue("mBackgroundSize", typeof(Rectangle));
+            /*
+                public readonly List<IDrawable2D> mElementList;
+                public bool mIsVisible;
+
+                public Rectangle Size { get; private set; }
+
+                private readonly Rectangle mRelativePosition;
+                private int mScreenWidth;
+                private int mScreenHeight;
+
+                private bool mSolid;
+
+                // Background
+                private bool mHasBackground;
+                private Texture2D mBackgorundTexture2D;
+                private Rectangle mBackgroundSizeRelative;
+                private Rectangle mBackgroundSize;
+             */
+        }
+        public Menu() { }
     }
 }

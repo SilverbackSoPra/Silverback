@@ -35,6 +35,7 @@ namespace LevelEditor
                         ShadowSamples = 0;
                         ShadowResolution = 4;
                         ShadowDistance = 0.0f;
+                        ShadowBias = 0.0f;
                         BloomPasses = 0;
                         Bloom = false;
                         ViewingDistance = 50.0f;
@@ -44,6 +45,7 @@ namespace LevelEditor
                         ShadowSamples = 1;
                         ShadowDistance = 30.0f;
                         ShadowResolution = 1024;
+                        ShadowBias = 0.002f;
                         BloomPasses = 0;
                         ViewingDistance = 75.0f;
                         Bloom = false;
@@ -53,6 +55,7 @@ namespace LevelEditor
                         ShadowSamples = 8;
                         ShadowDistance = 60.0f;
                         ShadowResolution = 2048;
+                        ShadowBias = 0.002f;
                         BloomPasses = 3;
                         ViewingDistance = 125.0f;
                         Bloom = true;
@@ -62,6 +65,7 @@ namespace LevelEditor
                         ShadowSamples = 16;
                         ShadowDistance = 90.0f;
                         ShadowResolution = 4096;
+                        ShadowBias = 0.001f;
                         BloomPasses = 5;
                         ViewingDistance = 200.0f;
                         Bloom = true;
@@ -71,6 +75,7 @@ namespace LevelEditor
                         ShadowSamples = 16;
                         ShadowDistance = 120.0f;
                         ShadowResolution = 8192;
+                        ShadowBias = 0.0005f;
                         BloomPasses = 5;
                         Bloom = true;
                         ViewingDistance = 250.0f;
@@ -84,6 +89,7 @@ namespace LevelEditor
         public static int ShadowSamples { get; private set; }
         public static int ShadowResolution { get; private set; }
         public static float ShadowDistance { get; private set; }
+        public static float ShadowBias { get; private set; }
 
         // Bloom settings
         public static bool Bloom { get; private set; }

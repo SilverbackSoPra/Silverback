@@ -1,12 +1,52 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using System.IO;
+using System.Xml.Serialization;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace LevelEditor.Engine.Mesh
 {
-    internal sealed class Material
+    [Serializable()]
+    public sealed class Material
     {
+        [XmlIgnore]
+        public Texture2D mDiffuseMap { get; set; }
 
-        public Texture2D mDiffuseMap;
+        public string mDiffuseMapPath;
+
+        [XmlIgnore]
+        public GraphicsDevice mGraphicsDevice;
+
+        private FileStream mDiffuseMapStream;
+
+        public FileStream DiffuseMapStream
+        {
+            get { return mDiffuseMapStream; }
+            set
+            {
+                mDiffuseMapStream = value;
+                if (mGraphicsDevice == null)
+                {
+                    return;
+                }
+                mDiffuseMap = Texture2D.FromStream(mGraphicsDevice, mDiffuseMapStream);
+            }
+        }
+
+        public string DiffuseMapPath
+        {
+            get { return mDiffuseMapPath; }
+            set
+            {
+                mDiffuseMapPath = value;
+                if (value == null)
+                {
+                    return;
+                }
+
+            }
+        }
 
         public Vector3 mDiffuseColor;
 

@@ -40,7 +40,7 @@ namespace LevelEditor.Engine.Renderer
                 }
 
                 mGraphicsDevice.SetVertexBuffer(actorBatch.mMesh.VertexBuffer);
-                mGraphicsDevice.Indices = (actorBatch.mMesh.IndexBuffer);
+                mGraphicsDevice.Indices = actorBatch.mMesh.IndexBuffer;
 
                 foreach (var actor in actorBatch.mActors)
                 {

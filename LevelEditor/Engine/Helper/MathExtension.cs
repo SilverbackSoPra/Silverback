@@ -31,6 +31,18 @@ namespace LevelEditor.Engine.Helper
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="factor"></param>
+        /// <returns></returns>
+        public static float Mix(float x, float y, float factor)
+        {
+            return x + factor * (y - x);
+        }
+
+        /// <summary>
         /// Clamps the variable to the range of [min, max]
         /// </summary>
         /// <param name="value">The variable to be clamped</param>

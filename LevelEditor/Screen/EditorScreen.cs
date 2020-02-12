@@ -27,6 +27,7 @@ namespace LevelEditor.Screen
         public Mesh mSelectedMesh;
         public Actor mSelectedActor;
         public bool mSelectMode;
+        public bool mSetOnce;
         private bool mShiftDown;
         private bool mRightMouseButtonDown;
         private bool mDeleteDown;
@@ -51,7 +52,7 @@ namespace LevelEditor.Screen
             // Create a new content manager so we can unload all its content afterwards
             mContentManager = new ContentManager(contentManager.ServiceProvider, contentManager.RootDirectory);
 
-            mLevel = new Level(mContentManager, graphicsDevice, true);
+            mLevel = new Level(mContentManager, SoundManager, graphicsDevice, true);
 
             mRenderTarget = new RenderTarget(graphicsDevice, Options.ResolutionWidth, Options.ResolutionHeight, Options.ShadowResolution);
             mMasterRenderer = new MasterRenderer(graphicsDevice, mContentManager) {PrePass = false, DebugMode = false};
@@ -191,6 +192,12 @@ namespace LevelEditor.Screen
                         mSelectedActor.Color = new Vector3(1.0f);
                         mSelectedActor = null;
                         mRightMouseButtonDown = false;
+                        if (mSetOnce)
+                        {
+                            mSetOnce = false;
+                            mSelectMode = true;
+                            mSelectedMesh = null;
+                        }
                     }
                 }
 

@@ -13,10 +13,11 @@ namespace LevelEditor.Engine.Animation
         Stopped
     }
 
-    sealed class AnimationActor
+    [Serializable()]
+    internal sealed class AnimationActor
     {
 
-        private readonly int mFadeInTime;
+        private int mFadeInTime;
         private int mFadeTime;
 
         private float mFadeOutWeight;
@@ -25,17 +26,20 @@ namespace LevelEditor.Engine.Animation
 
         public FadeState mFadeState;
 
-        public readonly Animation mAnimation;
+        public Animation mAnimation;
    
         public float mAnimationTime;
         private float mAnimationStartTime;
 
         public float mMix;
 
+        private Animation mLastAnimation;
+
         public AnimationActor(Animation animation, bool loop, int fadeInTime)
         {
 
             mAnimation = animation;
+            mLastAnimation = animation;
             mLoop = loop;
 
             mFadeInTime = fadeInTime;
@@ -124,6 +128,10 @@ namespace LevelEditor.Engine.Animation
 
         private void UpdateAnimationTime(GameTime gameTime)
         {
+            if (mAnimation == null)
+            {
+                return;
+            }
 
             var timeInTicks = mAnimation.mTickPerSecond * ((float)gameTime.TotalGameTime.TotalMilliseconds - mAnimationStartTime) / 1000.0f;
 
@@ -135,7 +143,6 @@ namespace LevelEditor.Engine.Animation
             {
                 mAnimationTime = Math.Min(timeInTicks, mAnimation.mDuration);
             }
-
         }
 
     }

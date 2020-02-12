@@ -7,7 +7,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Audio;
 using LevelEditor.UIv2;
 using System.Windows.Forms;
-using Menu = LevelEditor.Ui.Menu;
 
 namespace LevelEditor.Screen
 {
@@ -15,7 +14,7 @@ namespace LevelEditor.Screen
     {
         private List<UIv2.Menu> mMenuList;
         private SpriteBatch mSpriteBatch;
-        private Texture2D mBackgroundImageOptions;
+        private Texture2D mBackgroundImage;
         private SoundEffect mClickSound;
 
         private HudScreen mHudScreen;
@@ -80,34 +79,47 @@ namespace LevelEditor.Screen
             IsVisible = true;
 
             // Load background image
-            // mBackgroundImageOptions = contentManager.Load<Texture2D>("forest");
+            mBackgroundImage = contentManager.Load<Texture2D>("Forest");
 
             mMenuList = new List<UIv2.Menu>();
             var menu = new UIv2.Menu(mGraphicsDevice, 5, 5, 90, 90);
-            menu.WithBackground(Menu.CreateTexture2D(deviceManager.GraphicsDevice, 50, 30, pixel => new Color(0.0f, 0.0f, 0.0f, 0.2f)), 5, 5, 90, 90);
+            menu.WithBackground(UIv2.Menu.CreateTexture2D(deviceManager.GraphicsDevice, 50, 30, pixel => new Color(0.0f, 0.0f, 0.0f, 0.2f)), 5, 5, 90, 90);
             mMenuList.Add(menu);
 
-            Texture2D texture2D = Menu.CreateTexture2D(mGraphicsDevice, 200, 30, pixel => Color.Black);
-            Texture2D texture2DSliderPoint = Menu.CreateTexture2D(mGraphicsDevice, 200, 30, pixel => Color.White);
+            Texture2D texture2D = UIv2.Menu.CreateTexture2D(mGraphicsDevice, 200, 30, pixel => Color.Black);
+            Texture2D texture2DSliderPoint = UIv2.Menu.CreateTexture2D(mGraphicsDevice, 200, 30, pixel => Color.White);
 
             // GAME OVER Text
             var heading = new UIv2.Components.Label(mGraphicsDevice, 10, 20, 80, 30, "GAME OVER", headerFont, Color.DarkSlateGray);
+            heading.FontType = FontManager.FontType.Heading;
             heading.AddTo(menu);
 
             var loseString = "The lumberjacks won... Now go bury yourself!";
             var loseLabel = new UIv2.Components.Label(mGraphicsDevice, 20, 60, 60, 10, loseString, font, Color.White);
             loseLabel.AddTo(menu);
 
+            var repeatButton = new UIv2.Components.Button(mGraphicsDevice, 40, 70, 20, 7, texture2D, "Try again", font, Color.White);
+            repeatButton.AddTo(menu);
+            repeatButton.AddListener(MouseButtons.Left, InputState.Pressed, () =>
+            {
+                var levelString = mHudScreen.mGameScreen.mLevel.mLevelFilename;
+                SoundManager.AddSound(mClickSound);
+                ScreenManager.Remove(this);
+                IsVisible = false;
+                var loadingScreen = new LoadingScreen(levelString);
+                ScreenManager.Add(loadingScreen);
+            });
+
             // Create Main Menu Button (Back Button)
-            var mainMenuButton = new UIv2.Components.Button(mGraphicsDevice, 40, 70, 20, 8, texture2D, "Main Menu", font, Color.White);
-            mainMenuButton.AddTo(menu);
-            mainMenuButton.AddListener(MouseButtons.Left, InputState.Pressed, () =>
+            var backButton = new UIv2.Components.Button(mGraphicsDevice, 40, 80, 20, 7, texture2D, "Main menu", font, Color.White);
+            backButton.AddTo(menu);
+            backButton.AddListener(MouseButtons.Left, InputState.Pressed, () =>
             {
                 SoundManager.AddSound(mClickSound);
-                ScreenManager.Remove(mHudScreen);
                 ScreenManager.Remove(this);
                 IsVisible = false;
             });
+
         }
 
         public void Render(GameTime time)
@@ -116,7 +128,9 @@ namespace LevelEditor.Screen
             {
                 return;
             }
-
+            mSpriteBatch.Begin();
+            mSpriteBatch.Draw(mBackgroundImage, new Rectangle(0, 0, mScreenWidth, mScreenHeight), Color.White);
+            mSpriteBatch.End();
             foreach (var menu in mMenuList)
             {
                 menu.Render(mSpriteBatch);
@@ -130,6 +144,7 @@ namespace LevelEditor.Screen
 
         public void Update(GameTime time)
         {
+
             // Iterate over all Menu elements
             foreach (var menu in mMenuList)
             {

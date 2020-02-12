@@ -24,6 +24,8 @@ namespace LevelEditor.Sound
                 mChannels = reader.WaveFormat.Channels;
                 mSampleRate = reader.WaveFormat.SampleRate;
 
+                reader.Close();
+
             }
 
         }
@@ -41,4 +43,5 @@ namespace LevelEditor.Sound
         }
 
     }
+
 }

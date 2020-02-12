@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Windows.Forms;
+using System.Xml.Serialization;
 using LevelEditor.UIv2;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using Menu = LevelEditor.Ui.Menu;
 using LevelEditor.Sound;
 using Microsoft.Xna.Framework.Audio;
 
@@ -24,6 +26,7 @@ namespace LevelEditor.Screen
         private EditorHudScreen mEditorHudScreen;
         private AchievementsScreen mAchievementsScreen;
         private CreditsScreen mCreditsScreen;
+        private ScreamScreen mScreamScreen;
 
         private SpriteBatch mSpriteBatch;
 
@@ -83,13 +86,15 @@ namespace LevelEditor.Screen
             mCreditsScreen = new CreditsScreen();
             mEditorHudScreen = new EditorHudScreen();
             mAchievementsScreen = new AchievementsScreen();
+            mScreamScreen = new ScreamScreen();
 
             var menu = new UIv2.Menu(mGraphicsDevice, 0, 0, 100, 100);
             mMenuList.Add(menu);
 
-            var texture2D = Menu.CreateTexture2D(mGraphicsDevice, 200, 30, pixel => Color.Black);
+            var texture2D = UIv2.Menu.CreateTexture2D(mGraphicsDevice, 200, 30, pixel => Color.Black);
             
             var heading = new UIv2.Components.Label(mGraphicsDevice, 10, 0, 80, 30, "Silverback", headerFont, Color.DarkSlateGray);
+            heading.FontType = FontManager.FontType.Heading;
             heading.AddTo(menu);
 
             var newGameButton = new UIv2.Components.Button(mGraphicsDevice, 35, 24, 30, 7, texture2D, "New Game", font, Color.White);
@@ -97,11 +102,10 @@ namespace LevelEditor.Screen
             newGameButton.AddListener(MouseButtons.Left, InputState.Pressed, () =>
             {
                 SoundManager.AddSound(mClickSound);
-
-                var loadingScreen = new LoadingScreen("..\\..\\..\\..\\Content\\level3.lvl");
+                Statistic.CurrentSaveTime = 0;
+                var loadingScreen = new LoadingScreen("..\\..\\..\\..\\Content\\tutorial.lvl");
                 ScreenManager.Add(loadingScreen);
                 IsVisible = false;
-
             });
 
             var loadGameButton = new UIv2.Components.Button(mGraphicsDevice, 35, 32, 30, 7, texture2D, "Load Game", font, Color.White);
@@ -111,9 +115,43 @@ namespace LevelEditor.Screen
             {
                 SoundManager.AddSound(mClickSound);
 
-                var loadingScreen = new LoadingScreen("..\\..\\..\\..\\Content\\level1.lvl");
-                ScreenManager.Add(loadingScreen);                
-                IsVisible = false;               
+                if (!File.Exists(PauseScreen.GetSavedGamesPath() + "\\Camera.xml") ||
+                    !File.Exists(PauseScreen.GetSavedGamesPath() + "\\CapuchinPositions.xml") ||
+                    !File.Exists(PauseScreen.GetSavedGamesPath() + "\\ChimpPositions.xml") ||
+                    !File.Exists(PauseScreen.GetSavedGamesPath() + "\\GibbonPositions.xml") ||
+                    !File.Exists(PauseScreen.GetSavedGamesPath() + "\\HudScreen.xml") ||
+                    !File.Exists(PauseScreen.GetSavedGamesPath() + "\\Huts.xml") ||
+                    !File.Exists(PauseScreen.GetSavedGamesPath() + "\\Level.xml") ||
+                    !File.Exists(PauseScreen.GetSavedGamesPath() + "\\OrangPositions.xml") ||
+                    !File.Exists(PauseScreen.GetSavedGamesPath() + "\\Silverback.xml"))
+                {
+                    return;
+                }
+
+                // Get the level file
+
+                using (var fs = File.OpenRead(PauseScreen.GetSavedGamesPath() + "\\HudScreen.xml"))
+                {
+                    var serializer = new XmlSerializer(typeof(HudScreen));
+                    HudScreen hudScreen = null;
+                    try
+                    {
+                        hudScreen = (HudScreen) serializer.Deserialize(fs);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.GetBaseException());
+                    }
+
+                    if (hudScreen != null)
+                    {
+                        var loadingScreen = new LoadingScreen(hudScreen.mLevelPath);
+                        loadingScreen.LoadSaveGame();
+                        ScreenManager.Add(loadingScreen);
+                    }
+
+                    IsVisible = false;
+                }
 
             });
 
@@ -149,6 +187,7 @@ namespace LevelEditor.Screen
             creditsButton.AddListener(MouseButtons.Left, InputState.Pressed, () =>
             {
                 SoundManager.AddSound(mClickSound);
+                // ScreenManager.Add(mScreamScreen);
                 ScreenManager.Add(mCreditsScreen);
                 IsVisible = false;
 
@@ -184,6 +223,8 @@ namespace LevelEditor.Screen
                 ScreenManager.Remove(this);
 
             });
+
+            
         }
 
         public void UnloadContent()

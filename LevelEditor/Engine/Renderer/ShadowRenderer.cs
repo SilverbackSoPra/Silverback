@@ -60,7 +60,7 @@ namespace LevelEditor.Engine.Renderer
                 }
 
                 mGraphicsDevice.SetVertexBuffer(actorBatch.mMesh.VertexBuffer);
-                mGraphicsDevice.Indices = (actorBatch.mMesh.IndexBuffer);
+                mGraphicsDevice.Indices = actorBatch.mMesh.IndexBuffer;
 
                 // When we render shadows we dont care about materials so we
                 // can just iterate of the number of actors instead of using

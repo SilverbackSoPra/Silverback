@@ -1,10 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
 using OpenTK.Audio.OpenAL;
 using System;
+using System.Runtime.Serialization;
 
 namespace LevelEditor.Sound
 {
-    internal sealed class AudioSource
+    [Serializable()]
+    public sealed class AudioSource : IDisposable
     {
 
         public enum AudioState
@@ -27,6 +29,19 @@ namespace LevelEditor.Sound
             }
         }
 
+        public bool Relative
+        {
+            get
+            {
+                return mRelative;
+            }
+            set
+            {
+                AL.Source(mSource, ALSourceb.SourceRelative, value);
+                mRelative = value;
+            }
+        }
+
         public Vector3 Location
         {
             get
@@ -41,7 +56,7 @@ namespace LevelEditor.Sound
             }
         }
 
-        private Vector3 Direction
+        public Vector3 Direction
         {
             get
             {
@@ -76,12 +91,24 @@ namespace LevelEditor.Sound
             }
             set
             {
-                mVolume = Math.Min(Math.Max(value, 0.0f), 1.0f);
-                AL.Source(mSource, ALSourcef.Gain, mVolume);
+                mVolume = Math.Max(value, 0.0f);
+                AL.Source(mSource, ALSourcef.Gain, mVolume * mVolumeMultiplier);
             }
         }
 
-        private float MinGain
+        public float VolumeMultiplier {
+            get
+            {
+                return mVolumeMultiplier;
+            }
+            set
+            {
+                mVolumeMultiplier = Math.Min(Math.Max(value, 0.0f), 1.0f);
+                AL.Source(mSource, ALSourcef.Gain, mVolume * mVolumeMultiplier);
+            }
+        }
+
+        public float MinGain
         {
             get
             {
@@ -94,7 +121,7 @@ namespace LevelEditor.Sound
             }
         }
 
-        private float MaxGain
+        public float MaxGain
         {
             get
             {
@@ -107,7 +134,7 @@ namespace LevelEditor.Sound
             }
         }
 
-        private float ReferenceDistance
+        public float ReferenceDistance
         {
             get
             {
@@ -120,7 +147,7 @@ namespace LevelEditor.Sound
             }
         }
 
-        private float RolloffFactor
+        public float RolloffFactor
         {
             get
             {
@@ -133,7 +160,7 @@ namespace LevelEditor.Sound
             }
         }
 
-        private float MaxDistance
+        public float MaxDistance
         {
             get
             {
@@ -151,17 +178,21 @@ namespace LevelEditor.Sound
 
         // General attributes
         private bool mLoop;
+        private bool mRelative;
         private Vector3 mLocation;
         private Vector3 mDirection;
         private float mPitch;
         private float mVolume;
+        private float mVolumeMultiplier;
 
         // Attenuation attributes (depending on distance model)
         private float mMinGain;
         private float mMaxGain;
         private float mReferenceDistance;
         private float mRolloffFactor;
-        private float mMaxDistance;        
+        private float mMaxDistance;
+
+        private bool mDisposed = false;
 
         public AudioSource(AudioBuffer buffer)
         {
@@ -172,10 +203,12 @@ namespace LevelEditor.Sound
             AL.Source(mSource, ALSourcei.Buffer, mAudioBuffer.GetId());
 
             Loop = false;
+            Relative = false;
             Location = new Vector3(0.0f);
             Direction = new Vector3(0.0f);
             Pitch = 1.0f;
-            Volume = Options.SoundEffectVolume / 100.0f;
+            Volume = 1.0f;
+            VolumeMultiplier = 0.0f;
 
             MinGain = 0.0f;
             MaxGain = 1.0f;
@@ -215,6 +248,33 @@ namespace LevelEditor.Sound
             }
 
             return audioState;
+
+        }
+
+        private AudioSource()
+        { }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+
+            if (mDisposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                AL.SourceStop(mSource);
+                AL.DeleteSource(mSource);
+            }
+
+            mDisposed = true;
 
         }
 

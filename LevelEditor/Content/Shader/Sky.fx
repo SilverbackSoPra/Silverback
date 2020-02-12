@@ -103,9 +103,9 @@ float3 PixelShaderFunction(VertexShaderOutput input) : COLOR
 	
 	float3 forwardNormal = normalize(float3(normal.x, 0.0f, normal.z));	
 	
-	float fogFactor = clamp((dot(normal, forwardNormal) - 0.9f) / 0.2f, 0.0f, 1.0f);
+	float fogFactor = pow(clamp((dot(normal, forwardNormal) - 0.975) * 40.0f, 0.0f, 1.0f), 2.0f);
 	
-	return lerp(color, fogColor, fogFactor * 0.0001f);
+	return lerp(color, fogColor, fogFactor);
 	
 }
 	

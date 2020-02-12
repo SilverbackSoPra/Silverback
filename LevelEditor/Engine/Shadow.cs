@@ -7,13 +7,13 @@ namespace LevelEditor.Engine
     /// <summary>
     /// Represents a shadow which can be attached to a light.
     /// </summary>
-    internal sealed class Shadow
+    public sealed class Shadow
     {
 
         private readonly Light mLight;
 
         public float mDistance;
-        public readonly float mBias;
+        public float mBias;
 
         public int mNumSamples;
         public readonly float mSampleRange;
@@ -37,7 +37,7 @@ namespace LevelEditor.Engine
             mLight = light;
 
             mDistance = 60.0f;
-            mBias = 0.002f;
+            mBias = 0.001f;
             mNumSamples = 8;
             mSampleRange = 0.4f;
 

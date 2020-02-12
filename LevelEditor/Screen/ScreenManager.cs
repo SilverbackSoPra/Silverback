@@ -9,14 +9,16 @@ using LevelEditor.Sound;
 
 namespace LevelEditor.Screen
 {
-    internal sealed class ScreenManager
+    public sealed class ScreenManager
     {
 
         private readonly GraphicsDeviceManager mGraphicsManager;
+        public static GraphicsDeviceManager GraphicsManager;
         private readonly ContentManager mContentManager;
+        public static ContentManager ContentManager;
         private readonly Game mGame;
         private readonly SoundManager mSoundManager;
-
+        public static SoundManager SoundManager;
         private List<IScreen> Screens { get; }
 
         private int RenderingWidth { get; set; }
@@ -32,6 +34,7 @@ namespace LevelEditor.Screen
         {
 
             mSoundManager = new SoundManager();
+            SoundManager = mSoundManager;
 
             mScreenWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
             mScreenHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
@@ -40,10 +43,12 @@ namespace LevelEditor.Screen
                 PreferredBackBufferWidth = mScreenWidth,
                 PreferredBackBufferHeight = mScreenHeight,
                 IsFullScreen = fullScreen};
+            GraphicsManager = mGraphicsManager;
 
             Options.ScreenResolution(mScreenWidth, mScreenHeight);
 
             mContentManager = game.Content;
+            ContentManager = game.Content;
             mGame = game;
 
             Screens = new List<IScreen>();

@@ -1,15 +1,16 @@
 ﻿using LevelEditor.Sound;
-using LevelEditor.UIv2;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+using System.IO;
+using System.Xml.Serialization;
+using LevelEditor.Engine;
+using LevelEditor.Objects.Ape;
+using LevelEditor.Objects.Ape.SubApe;
+using LevelEditor.UIv2;
 
 namespace LevelEditor.Screen
 {
@@ -35,6 +36,7 @@ namespace LevelEditor.Screen
         private string mLevelPath;
 
         private bool mDeleteScreen = false;
+        private bool mLoadSaveGame = false;
 
         public LoadingScreen(string levelPath)
         {
@@ -75,9 +77,11 @@ namespace LevelEditor.Screen
             mMenuList.Add(menu);
 
             var heading = new UIv2.Components.Label(mGraphicsDevice, 10, 0, 80, 30, "Silverback", headerFont, Color.DarkSlateGray);
+            heading.FontType = FontManager.FontType.Heading;
             heading.AddTo(menu);
 
             var subheading = new UIv2.Components.Label(mGraphicsDevice, 35, 65, 30, 15, "Loading...", subHeaderFont, Color.White);
+            subheading.FontType = FontManager.FontType.Subheading;
             subheading.AddTo(menu);
 
             var text = new UIv2.Components.Label(mGraphicsDevice, 20, 80, 60, 15, "Hurry! The apes are waiting for your help", font, Color.White);
@@ -99,6 +103,11 @@ namespace LevelEditor.Screen
                 var hudScreen = new HudScreen(mLevelPath);
                 ScreenManager.Add(hudScreen);
                 ScreenManager.Remove(this);
+
+                if (mLoadSaveGame)
+                {
+                    LoadSaveGame(ref hudScreen);
+                }
             }
             else {
 
@@ -155,6 +164,22 @@ namespace LevelEditor.Screen
         public void ChangeRenderingResolution(int width, int height)
         {
             throw new NotImplementedException();
+        }
+
+        public void LoadSaveGame()
+        {
+            mLoadSaveGame = true;
+        }
+
+        private void LoadSaveGame(ref HudScreen hudScreen)
+        {
+            var err = PauseScreen.ReinitialseSavegame(ref hudScreen);
+            if (err != "")
+            {
+                mLoadSaveGame = false;
+                ScreenManager.Remove(this);
+                return;
+            }
         }
 
     }

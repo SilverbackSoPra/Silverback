@@ -19,6 +19,8 @@ namespace LevelEditor.UIv2.Components
 
         private bool mAutoBreak;
 
+        public bool mDisabled;
+
         public string Text
         {
             get
@@ -67,10 +69,29 @@ namespace LevelEditor.UIv2.Components
         private Rectangle mSize;
         public Texture2D mTexture;
 
+        public FontManager.FontType mFontType;
+
+        public FontManager.FontType FontType
+        {
+            get { return mFontType; }
+            set
+            {
+                if (value != mFontType)
+                {
+                    mFont = FontManager.Get(value, mGraphicsDevice.Viewport.Width, mGraphicsDevice.Viewport.Height);
+                }
+                mFontType = value;
+
+            }
+        }
+
+        private int mWindowWidth;
+        private int mWindowHeight;
+        
         // Text
         private Vector2 mTextSize;
         private readonly Color mTextColor;
-        private readonly SpriteFont mFont;
+        private SpriteFont mFont;
         private readonly List<Event> mEvents;
 
         private GraphicsDevice mGraphicsDevice;
@@ -97,6 +118,9 @@ namespace LevelEditor.UIv2.Components
 
             mIsVisible = true;
             mEvents = new List<Event>();
+            FontType = FontManager.FontType.Default;
+            mWindowWidth = mGraphicsDevice.Viewport.Width;
+            mWindowHeight = mGraphicsDevice.Viewport.Height;
         }
 
         ////////////////////
@@ -110,7 +134,11 @@ namespace LevelEditor.UIv2.Components
                 return;
             }
 
-            if (mSize.Contains(Mouse.GetState().Position))
+            if (mDisabled)
+            {
+                batch.Draw(mTexture, mSize, Color.White * .1f);
+            }
+            else if (mSize.Contains(Mouse.GetState().Position))
             {
                 batch.Draw(mTexture, mSize, Color.White);
             }
@@ -120,7 +148,6 @@ namespace LevelEditor.UIv2.Components
             }
             for (var i = 0; i < mTextList.Count && i < mTextSizeList.Count; i++)
             {
-                // mTextSizeList[i] = new Vector2(mSize.X + mSize.Width / 2.0f - mFont.MeasureString(mTextList[i]).X / 2.0f, mSize.Y + mSize.Height / 2.0f - mFont.MeasureString(mTextList[i]).Y / 2.0f);
                 batch.DrawString(mFont, mTextList[i], mTextSizeList[i], mTextColor);
             }
 
@@ -180,6 +207,14 @@ namespace LevelEditor.UIv2.Components
             size.Height = mRelativePosition.Height * height / 100;
 
             mSize = size;
+            
+            if (width != mWindowWidth || height != mWindowHeight)
+            {
+                mFont = FontManager.Get(mFontType, mGraphicsDevice.Viewport.Width, mGraphicsDevice.Viewport.Height);
+            }
+
+            mWindowWidth = width;
+            mWindowHeight = height;
 
             Text = mText;
         }
@@ -207,6 +242,11 @@ namespace LevelEditor.UIv2.Components
 
         public void CheckRegisteredEvents()
         {
+            if (mDisabled)
+            {
+                return;
+            }
+
             // Check keyboard events
             var keyboardEvents = mEvents.FindAll(e => e.EventType == EventType.Keyboard);
             foreach (var e in keyboardEvents)

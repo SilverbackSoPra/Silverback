@@ -5,7 +5,8 @@ using Microsoft.Xna.Framework;
 
 namespace LevelEditor.Engine.Animation
 {
-    internal sealed class Animator
+    [Serializable()]
+    public sealed class Animator
     {
 
         private struct Attachment
@@ -26,17 +27,17 @@ namespace LevelEditor.Engine.Animation
 
         }
 
-        private readonly List<Animation> mAnimations;
-        private readonly Bone[] mBones;
+        private List<Animation> mAnimations;
+        private Bone[] mBones;
 
-        public readonly Matrix[] mTransformations;
+        public Matrix[] mTransformations;
 
-        private readonly List<AnimationActor> mAnimationActors;
-        private readonly List<Attachment> mAttachments;
+        private List<AnimationActor> mAnimationActors;
+        private List<Attachment> mAttachments;
 
         private Animation mStandardAnimation;
 
-        private readonly bool mIsSkinned;
+        private bool mIsSkinned;
 
         public Animator(Mesh.Mesh mesh)
         {
@@ -57,6 +58,9 @@ namespace LevelEditor.Engine.Animation
 
         }
 
+        private Animator()
+        { }
+
         public void AttachActor(string boneName, Actor actor)
         {
 
@@ -73,6 +77,20 @@ namespace LevelEditor.Engine.Animation
 
         }
 
+        public List<Actor> GetAttachedActors()
+        {
+
+            var list = new List<Actor>();
+
+            foreach (var attachment in mAttachments)
+            {
+                list.Add(attachment.mActor);
+            }
+
+            return list;
+
+        }
+
         public void SetStandardAnimation(string name)
         {
             mStandardAnimation = FindAnimation(name);
@@ -82,6 +100,12 @@ namespace LevelEditor.Engine.Animation
         {
 
             var animation = FindAnimation(name);
+
+            if (animation == null)
+            {
+                return;
+            }
+
             AnimationActor foundAnimationActor = null;
             
             foreach (var animationActor in mAnimationActors)
@@ -92,7 +116,7 @@ namespace LevelEditor.Engine.Animation
                     // We don't want to play the animation twice
                     foundAnimationActor = animationActor;
                 }
-                else if (animation == animationActor.mAnimation && (animationActor.mFadeState == FadeState.FadeOut))
+                else if (animation == animationActor.mAnimation && animationActor.mFadeState == FadeState.FadeOut)
                 {
                     // Here we just fade the animation in again
                     foundAnimationActor = animationActor;
@@ -104,6 +128,11 @@ namespace LevelEditor.Engine.Animation
                     animationActor.FadeOut();
                 }
 
+            }
+
+            if (animation == null)
+            {
+                animation = mStandardAnimation;
             }
 
             if (foundAnimationActor == null)
@@ -224,7 +253,7 @@ namespace LevelEditor.Engine.Animation
 
                             animationActor.mAnimation.mBoneKeys[i].mKeyFrames.Interpolate(ref positions[j], ref rotations[j], ref scales[j], animationActor.mAnimationTime);
 
-                            var mixValue = (animationActor.mMix / totalMix);
+                            var mixValue = animationActor.mMix / totalMix;
 
                             position += positions[j] * mixValue;
                             scale += scales[j] * mixValue;

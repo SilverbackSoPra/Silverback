@@ -27,6 +27,7 @@ namespace LevelEditor.Engine.Renderer
 
             mShader.mAlbedoMap = target.mMainRenderTarget;
 
+            mShader.mBloomPasses = scene.mPostProcessing.mBloom.mPasses;
             mShader.mBloom1 = target.mBloomRenderTarget1Vertical;
             mShader.mBloom2 = target.mBloomRenderTarget2Vertical;
             mShader.mBloom3 = target.mBloomRenderTarget3Vertical;

@@ -1,6 +1,8 @@
 ﻿using LevelEditor.Engine.Helper;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
 namespace LevelEditor.Engine.Mesh
 {
@@ -8,15 +10,18 @@ namespace LevelEditor.Engine.Mesh
     /// <summary>
     /// Represents a mesh or model and contains all necessary buffers for the GPU.
     /// </summary>
-    internal sealed class Mesh : IDisposable
+    [Serializable()]
+    public sealed class Mesh : IDisposable, ISerializable
     {
 
         public string Path { get; set; }
 
+        [JsonIgnore]
         public VertexBuffer VertexBuffer { get; }
+        [JsonIgnore]
         public IndexBuffer IndexBuffer { get; }
 
-        public readonly MeshData mMeshData;
+        public MeshData mMeshData;
 
         private bool mDisposed = false;
 
@@ -82,7 +87,7 @@ namespace LevelEditor.Engine.Mesh
             }
             else
             {
-                if ((data.mVertices == null && data.mVerticesExt == null) || data.mIndices == null)
+                if (data.mVertices == null && data.mVerticesExt == null || data.mIndices == null)
                 {
                     throw new EngineInvalidParameterException("Invalid vertices or indices count");
                 }
@@ -177,6 +182,27 @@ namespace LevelEditor.Engine.Mesh
             mDisposed = true;
 
         }
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("Path", Path);
+            info.AddValue("VertexBuffer", VertexBuffer);
+            info.AddValue("IndexBuffer", IndexBuffer);
+            info.AddValue("mMeshData", mMeshData);
+            info.AddValue("mDisposed", mDisposed);
+        }
+
+        public Mesh(SerializationInfo info, StreamingContext context)
+        {
+            Path = (string)info.GetValue("Path", typeof(string));
+            VertexBuffer = (VertexBuffer)info.GetValue("VertexBuffer", typeof(VertexBuffer));
+            IndexBuffer = (IndexBuffer)info.GetValue("IndexBuffer", typeof(IndexBuffer));
+            mMeshData = (MeshData)info.GetValue("mMeshData", typeof(MeshData));
+            mDisposed = (bool)info.GetValue("mDisposed", typeof(bool));
+        }
+
+        public Mesh()
+        { }
 
     }
 

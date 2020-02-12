@@ -6,7 +6,6 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using LevelEditor.Sound;
 using LevelEditor.UIv2;
-using Menu = LevelEditor.Ui.Menu;
 using Microsoft.Xna.Framework.Audio;
 
 namespace LevelEditor.Screen
@@ -36,6 +35,8 @@ namespace LevelEditor.Screen
             mScreenWidth = windowWidth;
             mScreenHeight = windowHeight;
 
+            Achievements.TributeToTheCreators = true;
+
             //Load SoundEffects
             mClickSound = contentManager.Load<SoundEffect>("Audio/click2");
 
@@ -52,17 +53,18 @@ namespace LevelEditor.Screen
             mBackgroundImageCredits = contentManager.Load<Texture2D>("forest");
             IsVisible = true;
 
-            Texture2D texture2D = Menu.CreateTexture2D(mGraphicsDevice, 200, 30, pixel => Color.Black);
+            Texture2D texture2D = UIv2.Menu.CreateTexture2D(mGraphicsDevice, 200, 30, pixel => Color.Black);
 
             mMenuList = new List<UIv2.Menu>();
 
             // Instantiate a new menu
             var menu = new UIv2.Menu(mGraphicsDevice, 5, 5, 90, 90);
-            menu.WithBackground(Menu.CreateTexture2D(mGraphicsDevice, (int)mTotalWindowSize.X, (int)mTotalWindowSize.Y, pixel => new Color(0.0f, 0.0f, 0.0f, 0.2f)), 5, 5, 90, 90);
+            menu.WithBackground(UIv2.Menu.CreateTexture2D(mGraphicsDevice, (int)mTotalWindowSize.X, (int)mTotalWindowSize.Y, pixel => new Color(0.0f, 0.0f, 0.0f, 0.2f)), 5, 5, 90, 90);
 
             mMenuList.Add(menu);
 
             var heading = new UIv2.Components.Label(mGraphicsDevice, 35, 5, 30, 15, "Credits", subHeaderFont, Color.White);
+            heading.FontType = FontManager.FontType.Subheading;
             heading.AddTo(menu);
 
             var scrollListRowCount = 3;

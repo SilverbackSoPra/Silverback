@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Xml.Serialization;
+using LevelEditor.Objects;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
+using Newtonsoft.Json.Linq;
 
 namespace LevelEditor.Engine
 {
@@ -9,29 +13,30 @@ namespace LevelEditor.Engine
     /// In third person mode the camera location represents the point the camera looks at while
     /// in first person mode the camera is at the actual location.
     /// </summary>
-    internal sealed class Camera
+    public sealed class Camera: ISaver, ILoader
     {
 
         public Vector3 mLocation;
         public Vector2 mRotation;
 
-        public readonly float mFieldOfView;
-        public readonly float mAspectRatio;
-        public readonly float mNearPlane;
+        public float mFieldOfView;
+        public float mAspectRatio;
+        public float mNearPlane;
         public float mFarPlane;
 
-        public readonly bool mThirdPerson;
-        public readonly float mThirdPersonDistance;
+        public bool mThirdPerson;
+        public float mThirdPersonDistance;
 
         public Matrix mViewMatrix;
         public Matrix mProjectionMatrix;
 
         private readonly AudioListener mListener;
 
-        public Vector3 Direction { get; private set; }
-        public Vector3 Up { get; private set; }
+        public Vector3 Direction { get; set; }
+        
+        public Vector3 Up { get; set; }
 
-        public Vector3 Right { get; private set; }
+        public Vector3 Right { get; set; }
 
         /// <summary>
         /// Constructs a <see cref="Camera"/>.
@@ -110,6 +115,78 @@ namespace LevelEditor.Engine
         {
             mProjectionMatrix =
                 Matrix.CreatePerspectiveFieldOfView(mFieldOfView / 180.0f * (float)Math.PI, mAspectRatio, mNearPlane, mFarPlane);
+        }
+
+        public string Save()
+        {
+            
+            var str = "{" +
+                        "\"mLocation\": {" +
+                            "\"X\": \"" + mLocation.X + "\"," +
+                            "\"Y\": \"" + mLocation.Y + "\"," +
+                            "\"Z\": \"" + mLocation.Z + "\"" +
+                        "}," +
+                        "\"mRotation\": {" +
+                            "\"X\": \"" + mRotation.X + "\"," +
+                            "\"Y\": \"" + mRotation.Y + "\"" +
+                        "}," +
+                        "\"mFieldOfView\": \"" + mFieldOfView + "\"," +
+                        "\"mAspectRatio\": \"" + mAspectRatio + "\"," +
+                        "\"mNearPlane\": \"" + mNearPlane + "\"," +
+                        "\"mThirdPerson\": \"" + mThirdPerson + "\"," +
+                        "\"mThirdPersonDistance\": \"" + mThirdPersonDistance + "\"," +
+                        "\"Direction\": {" +
+                            "\"X\": \"" + Direction.X + "\"," +
+                            "\"Y\": \"" + Direction.Y + "\"," +
+                            "\"Z\": \"" + Direction.Z + "\"" +
+                        "}," +
+                        "\"Up\": {" +
+                            "\"X\": \"" + Up.X + "\"," +
+                            "\"Y\": \"" + Up.Y + "\"," +
+                            "\"Z\": \"" + Up.Z + "\"" +
+                        "}," +
+                        "\"Right\": {" +
+                            "\"X\": \"" + Right.X + "\"," +
+                            "\"Y\": \"" + Right.Y + "\"," +
+                            "\"Z\": \"" + Right.Z + "\"" +
+                        "}" +
+                      "}";
+            return Newtonsoft.Json.JsonConvert.SerializeObject(this);
+        }
+
+        public bool Load(string str)
+        {
+            var c = Newtonsoft.Json.JsonConvert.DeserializeObject<Camera>(str);
+            float t = c.mFieldOfView;// ["mFieldOfView"];
+            Console.WriteLine(t);
+
+            /*var objects = JArray.Parse(str); // parse as array  
+            foreach (var jToken in objects)
+            {
+                var root = (JObject) jToken;
+                foreach (var key in root)
+                {
+                    switch (key.Key)
+                    {
+                        case "mFieldOfView":
+                            Console.WriteLine(key.Key);
+                            Console.WriteLine(key.Value);
+                            Console.WriteLine("\n");
+                            break;
+                        default:
+                            break;
+                            
+                    }
+                    // var description = (string)key.Value["Description"];
+                    // var value = (string)key.Value["Value"];
+                }
+            }*/
+            return false;
+        }
+
+        private Camera()
+        {
+            mListener = new AudioListener();
         }
     }
 }

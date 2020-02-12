@@ -2,7 +2,7 @@
 
 namespace LevelEditor.Engine
 {
-    internal sealed class Fog
+    public sealed class Fog
     {
 
         public Vector3 mColor;

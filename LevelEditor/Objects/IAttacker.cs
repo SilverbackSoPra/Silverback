@@ -7,5 +7,7 @@
         void Attacked(int damage);
 
         bool IsApe { get; set; }
+
+        bool IsHealer { get; set; }
     }
 }

@@ -12,6 +12,7 @@ namespace LevelEditor
         public static int Win { get; set; }
         public static int Lost { get; set; }
         public static int MinimalTime { get; set; }
+        public static int CurrentSaveTime { get; set; }
 
         public static void Load()
         {
@@ -26,6 +27,7 @@ namespace LevelEditor
                     Win = Convert.ToInt32(streamReader.ReadLine());
                     Lost = Convert.ToInt32(streamReader.ReadLine());
                     MinimalTime = Convert.ToInt32(streamReader.ReadLine());
+                    CurrentSaveTime = Convert.ToInt32(streamReader.ReadLine());
 
                     streamReader.Close();
                 }
@@ -40,6 +42,7 @@ namespace LevelEditor
                 Win = 0;
                 Lost = 0;
                 MinimalTime = 0;
+                CurrentSaveTime = 0;
             }
 
         }
@@ -55,6 +58,7 @@ namespace LevelEditor
                 streamWriter.WriteLine(Win);
                 streamWriter.WriteLine(Lost);
                 streamWriter.WriteLine(MinimalTime);
+                streamWriter.WriteLine(CurrentSaveTime);
 
                 streamWriter.Close();
 

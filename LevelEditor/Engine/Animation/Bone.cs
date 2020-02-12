@@ -1,15 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 
 namespace LevelEditor.Engine.Animation
 {
-    internal sealed class Bone
+    [Serializable()]
+    public sealed class Bone
     {
 
         public string mName;
 
         public Bone mParent;
-        public readonly List<Bone> mChildren;
+        public List<Bone> mChildren;
 
         public Matrix mOffset;
         public Matrix mTransformation;

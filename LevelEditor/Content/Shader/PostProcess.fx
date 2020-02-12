@@ -1,6 +1,7 @@
 const float gamma = 1.0f / 2.2f;
 
 float saturation;
+float bloomPasses;
 
 texture albedoMap;
 sampler2D textureSampler = sampler_state {
@@ -81,11 +82,21 @@ float3 PixelShaderFunction(VertexShaderOutput input) : COLOR
 	
 	float3 textureColor = tex2D(textureSampler, input.pixelTexCoord).rgb;
 	
-	textureColor += bloom1.Sample(Sampler, input.pixelTexCoord).rgb;
-	textureColor += bloom2.Sample(Sampler, input.pixelTexCoord).rgb;
-	textureColor += bloom3.Sample(Sampler, input.pixelTexCoord).rgb;
-	textureColor += bloom4.Sample(Sampler, input.pixelTexCoord).rgb;
-	textureColor += bloom5.Sample(Sampler, input.pixelTexCoord).rgb;
+	if (bloomPasses > 0) {
+		textureColor += bloom1.Sample(Sampler, input.pixelTexCoord).rgb;
+	}
+	if (bloomPasses > 1) {
+		textureColor += bloom2.Sample(Sampler, input.pixelTexCoord).rgb;
+	}
+	if (bloomPasses > 2) {
+		textureColor += bloom3.Sample(Sampler, input.pixelTexCoord).rgb;
+	}
+	if (bloomPasses > 3) {
+		textureColor += bloom4.Sample(Sampler, input.pixelTexCoord).rgb;
+	}
+	if (bloomPasses > 4) {
+		textureColor += bloom5.Sample(Sampler, input.pixelTexCoord).rgb;
+	}
 	
 	outColor = ACESToneMap(textureColor);
 	

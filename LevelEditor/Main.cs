@@ -21,7 +21,7 @@ namespace LevelEditor
             // This should also be removed if we don't want the variable framerate anymore
             IsFixedTimeStep = false;
 
-            mScreenManager = new ScreenManager(this, 1920, 1080, false);
+            mScreenManager = new ScreenManager(this, 1920, 1080, true);
             mMainMenuScreen = new MainMenuScreen();
 
             IsMouseVisible = true;
@@ -42,6 +42,7 @@ namespace LevelEditor
 
             Statistic.Load();
             Options.Load();
+            Achievements.Load();
 
             mScreenManager.ChangeRenderingResolution(Options.ResolutionWidth, Options.ResolutionHeight);
 
@@ -59,6 +60,7 @@ namespace LevelEditor
 
             Statistic.Save();
             Options.Save();
+            Achievements.Save();
 
         }
 
@@ -84,8 +86,6 @@ namespace LevelEditor
             }
 
             base.Update(gameTime);
-
-            Statistic.Time += gameTime.ElapsedGameTime.Milliseconds;
 
         }
 

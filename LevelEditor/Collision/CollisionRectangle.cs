@@ -3,27 +3,32 @@ using Microsoft.Xna.Framework;
 
 namespace LevelEditor.Collision
 {
+    [Serializable()]
     public class CollisionRectangle
     {
         private Vector2 V1 { get; set; }
         private Vector2 V2 { get; set; }
         private Vector2 V3 { get; set; }
         
-        public Vector2 V1Transformed { get; private set; }
-        public Vector2 V2Transformed { get; private set; }
-        public Vector2 V3Transformed { get; private set; }
-        public Vector2 V4Transformed { get; private set; }
+        public Vector2 V1Transformed { get; set; }
+        public Vector2 V2Transformed { get; set; }
+        public Vector2 V3Transformed { get; set; }
+        public Vector2 V4Transformed { get; set; }
 
-        public Vector2 Min { get; private set; }
-        public Vector2 Max { get; private set; }
+        public float Scale { get { return mScale; } set { mScale = value; Translate(Transformation); } }
+
+        public Vector2 Min { get; set; }
+        public Vector2 Max { get; set; }
 
         private Vector2 V1V2 { get; set; }
         private Vector2 V1V3 { get; set; }
         private float DotV1V2 { get; set; }
         private float DotV1V3 { get; set; }
+        private Matrix Transformation { get; set; }
 
-        private bool mHasMoved;
         private Rectangle mAxisAlignedRectangle;
+        private float mScale;
+        public bool mCollidable;
 
 
         public CollisionRectangle(Vector2 v1, Vector2 v2, Vector2 v3)
@@ -31,7 +36,18 @@ namespace LevelEditor.Collision
             V1 = v1;
             V2 = v2;
             V3 = v3;
+            mScale = 1.0f;
             Translate(Matrix.Identity);
+
+            if (v1 == v2 && v1 == v3 && v2 == v3)
+            {
+                mCollidable = false;
+            }
+            else
+            {
+                mCollidable = true;
+            }
+
         }
 
         public CollisionRectangle(CollisionRectangle rectangle)
@@ -39,26 +55,35 @@ namespace LevelEditor.Collision
             V1 = rectangle.V1;
             V2 = rectangle.V2;
             V3 = rectangle.V3;
+            mScale = 1.0f;
             Translate(Matrix.Identity);
-            mHasMoved = true;
+            mCollidable = rectangle.mCollidable;
         }
+
+        private CollisionRectangle()
+        { }
 
         public bool IntersectsRectangle(CollisionRectangle r, bool checkOther)
         {
-            
-            if (PointInside(r.V1Transformed, V1V2, V1V3, DotV1V2, DotV1V3))
+
+            if (!mCollidable)
+            {
+                return false;
+            }
+
+            if (PointInside(r.V1Transformed))
             {
                 return true;
             }
-            if (PointInside(r.V2Transformed, V1V2, V1V3, DotV1V2, DotV1V3))
+            if (PointInside(r.V2Transformed))
             {
                 return true;
             }
-            if (PointInside(r.V3Transformed, V1V2, V1V3, DotV1V2, DotV1V3))
+            if (PointInside(r.V3Transformed))
             {
                 return true;
             }
-            if (PointInside(r.V4Transformed, V1V2, V1V3, DotV1V2, DotV1V3))
+            if (PointInside(r.V4Transformed))
             {
                 return true;
             }
@@ -75,6 +100,11 @@ namespace LevelEditor.Collision
         public bool IntersectsLine(Vector2 vec1, Vector2 vec2)
         {
 
+            if (!mCollidable)
+            {
+                return false;
+            }
+
             return LineLineIntersection(vec1, vec2, V1Transformed, V4Transformed) ||
                 LineLineIntersection(vec1, vec2, V2Transformed, V3Transformed);
 
@@ -83,9 +113,11 @@ namespace LevelEditor.Collision
         public void Translate(Matrix matrix)
         {
 
-            var v1 = new Vector3(V1.X, 0.0f, V1.Y);
-            var v2 = new Vector3(V2.X, 0.0f, V2.Y);
-            var v3 = new Vector3(V3.X, 0.0f, V3.Y);
+            Transformation = matrix;
+
+            var v1 = new Vector3(V1.X, 0.0f, V1.Y) * Scale;
+            var v2 = new Vector3(V2.X, 0.0f, V2.Y) * Scale;
+            var v3 = new Vector3(V3.X, 0.0f, V3.Y) * Scale;
 
             var v1T = Vector3.Transform(v1, matrix);
             var v2T = Vector3.Transform(v2, matrix);
@@ -104,18 +136,17 @@ namespace LevelEditor.Collision
             DotV1V3 = Vector2.Dot(V1V3, V1V3);
 
             CalculateMinMax();
-            mHasMoved = true;
 
         }
 
-        private bool PointInside(Vector2 p, Vector2 v1V2, Vector2 v1V3, float dotV1V2, float dotV1V3)
+        public bool PointInside(Vector2 p)
         {
 
             var v1P = p - V1Transformed;
-            var dotV1V2V1P = v1V2.X * v1P.X + v1V2.Y * v1P.Y;
-            var dotV2V3V2P = v1V3.X * v1P.X + v1V3.Y * v1P.Y;
+            var dotV1V2V1P = V1V2.X * v1P.X + V1V2.Y * v1P.Y;
+            var dotV2V3V2P = V1V3.X * v1P.X + V1V3.Y * v1P.Y;
 
-            return 0.0f <= dotV1V2V1P && dotV1V2V1P <= dotV1V2 && 0.0f <= dotV2V3V2P && dotV2V3V2P <= dotV1V3;
+            return 0.0f <= dotV1V2V1P && dotV1V2V1P <= DotV1V2 && 0.0f <= dotV2V3V2P && dotV2V3V2P <= DotV1V3;
 
         }
 
@@ -137,39 +168,29 @@ namespace LevelEditor.Collision
             var s = (-seg1.Y * (line1P1.X - line2P1.X) + seg1.X * (line1P1.Y - line2P1.Y)) / determinant;
             var t = (seg2.X * (line1P1.Y - line2P1.Y) - seg2.Y * (line1P1.X - line2P1.X)) / determinant;
 
-            return (s >= 0.0f && s <= 1.0f && t >= 0.0f && t <= 1.0f);
+            return s >= 0.0f && s <= 1.0f && t >= 0.0f && t <= 1.0f;
 
-        }
-
-        public CollisionRectangle Scale(float scale)
-        { 
-            var vc = V1Transformed + (V2Transformed - V1Transformed) / 2.0f + (V3Transformed - V1Transformed) / 2.0f;
-            var v1 = vc + (V1Transformed - vc) * scale;
-            var v2 = vc + (V2Transformed - vc) * scale;
-            var v3 = vc + (V3Transformed - vc) * scale;
-
-            return new CollisionRectangle(v1, v2, v3);
- 
         }
 
         public Rectangle GetAxisAlignedRectangle(int scale)
         {
-            if (mHasMoved)
+            if (!mCollidable)
             {
-                mAxisAlignedRectangle = new Rectangle
-                {
-                    X = (int)Min.X,
-                    Y = (int)Min.Y,
-                    Width = (int)Math.Ceiling(Max.X - Min.X),
-                    Height = (int)Math.Ceiling(Max.Y - Min.Y)
-                };
-
-                mAxisAlignedRectangle.X = mAxisAlignedRectangle.X - mAxisAlignedRectangle.Width * scale;
-                mAxisAlignedRectangle.Y = mAxisAlignedRectangle.Y - mAxisAlignedRectangle.Height * scale;
-                mAxisAlignedRectangle.Width = mAxisAlignedRectangle.Width * 2 * scale;
-                mAxisAlignedRectangle.Height = mAxisAlignedRectangle.Height * 2 * scale;
-                mHasMoved = false;
+                return new Rectangle(0, 0, 0, 0);
             }
+
+            mAxisAlignedRectangle = new Rectangle
+            {
+                X = (int)Min.X,
+                Y = (int)Min.Y,
+                Width = (int)Math.Ceiling(Max.X - Min.X),
+                Height = (int)Math.Ceiling(Max.Y - Min.Y)
+            };
+
+            mAxisAlignedRectangle.X = mAxisAlignedRectangle.X - mAxisAlignedRectangle.Width * scale;
+            mAxisAlignedRectangle.Y = mAxisAlignedRectangle.Y - mAxisAlignedRectangle.Height * scale;
+            mAxisAlignedRectangle.Width = mAxisAlignedRectangle.Width * 2 * scale;
+            mAxisAlignedRectangle.Height = mAxisAlignedRectangle.Height * 2 * scale;
 
             return mAxisAlignedRectangle;
         }
@@ -202,7 +223,5 @@ namespace LevelEditor.Collision
             Max = max;
 
         }
-
     }
-
 }

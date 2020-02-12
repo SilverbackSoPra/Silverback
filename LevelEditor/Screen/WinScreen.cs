@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Audio;
 using LevelEditor.UIv2;
 using System.Windows.Forms;
-using Menu = LevelEditor.Ui.Menu;
+using System.IO;
 
 namespace LevelEditor.Screen
 {
@@ -15,7 +15,7 @@ namespace LevelEditor.Screen
     {
         private List<UIv2.Menu> mMenuList;
         private SpriteBatch mSpriteBatch;
-        private Texture2D mBackgroundImageOptions;
+        private Texture2D mBackgroundImage;
         private SoundEffect mClickSound;
 
         private HudScreen mHudScreen;
@@ -80,35 +80,71 @@ namespace LevelEditor.Screen
             IsVisible = true;
 
             // Load background image
-            // mBackgroundImageOptions = contentManager.Load<Texture2D>("forest");
+            mBackgroundImage = contentManager.Load<Texture2D>("Forest");
 
             mMenuList = new List<UIv2.Menu>();
             var menu = new UIv2.Menu(mGraphicsDevice, 5, 5, 90, 90);
-            menu.WithBackground(Menu.CreateTexture2D(deviceManager.GraphicsDevice, 50, 30, pixel => new Color(0.0f, 0.0f, 0.0f, 0.2f)), 5, 5, 90, 90);
+            menu.WithBackground(UIv2.Menu.CreateTexture2D(deviceManager.GraphicsDevice, 50, 30, pixel => new Color(0.0f, 0.0f, 0.0f, 0.2f)), 5, 5, 90, 90);
             mMenuList.Add(menu);
 
-            Texture2D texture2D = Menu.CreateTexture2D(mGraphicsDevice, 200, 30, pixel => Color.Black);
-            Texture2D texture2DSliderPoint = Menu.CreateTexture2D(mGraphicsDevice, 200, 30, pixel => Color.White);
+            Texture2D texture2D = UIv2.Menu.CreateTexture2D(mGraphicsDevice, 200, 30, pixel => Color.Black);
+            Texture2D texture2DSliderPoint = UIv2.Menu.CreateTexture2D(mGraphicsDevice, 200, 30, pixel => Color.White);
 
             // Congratulations!
             var congratz = new UIv2.Components.Label(mGraphicsDevice, 10, 0, 80, 30, "Congratulations!", headerFont, Color.DarkSlateGray);
+            congratz.FontType = FontManager.FontType.Heading;
             congratz.AddTo(menu);
 
             // You've won
             var win = new UIv2.Components.Label(mGraphicsDevice, 10, 30, 80, 30, "You've won", headerFont, Color.DarkSlateGray);
+            win.FontType = FontManager.FontType.Heading;
             win.AddTo(menu);
 
             var winString = "Nice work dude!";
             var winLabel = new UIv2.Components.Label(mGraphicsDevice, 20, 60, 60, 10, winString, font, Color.White);
             winLabel.AddTo(menu);
 
+            if (mHudScreen.mGameScreen.mLevel.mNextLevelFilename != "null")
+            {
+                var nextLevelButton = new UIv2.Components.Button(mGraphicsDevice, 40, 70, 20, 7, texture2D, "Next level", font, Color.White);
+                nextLevelButton.AddTo(menu);
+                nextLevelButton.AddListener(MouseButtons.Left, InputState.Pressed, () =>
+                {
+                    var nextLevelFilename = mHudScreen.mGameScreen.mLevel.mNextLevelFilename;
+                // Check if path is relative
+                if (!Path.IsPathRooted(nextLevelFilename))
+                    {
+                        var levelFilename = mHudScreen.mGameScreen.mLevel.mLevelFilename;
+                        var directoryPath = Path.GetDirectoryName(levelFilename);
+                        nextLevelFilename = directoryPath + "/" + nextLevelFilename;
+                    }
+                    SoundManager.AddSound(mClickSound);
+                    ScreenManager.Remove(this);
+                    IsVisible = false;
+                    var loadingScreen = new LoadingScreen(nextLevelFilename);
+                    ScreenManager.Add(loadingScreen);
+                });
+            }
+            else
+            {
+                winLabel.Text += " You've finished the game.";
+                if (Statistic.CurrentSaveTime < Statistic.MinimalTime || Statistic.MinimalTime == 0)
+                {
+                    Statistic.MinimalTime = Statistic.CurrentSaveTime;
+                    Achievements.Gamemaster = true;
+                    if (Statistic.MinimalTime < 3600000)
+                    {
+                        Achievements.Speedrunner = true;
+                    }
+                }
+            }
+
             // Create Main Menu Button (Back Button)
-            var mainMenuButton = new UIv2.Components.Button(mGraphicsDevice, 40, 70, 20, 8 , texture2D, "Main Menu", font, Color.White);
-            mainMenuButton.AddTo(menu);
-            mainMenuButton.AddListener(MouseButtons.Left, InputState.Pressed, () =>
+            var backButton = new UIv2.Components.Button(mGraphicsDevice, 40, 80, 20, 7, texture2D, "Main menu", font, Color.White);
+            backButton.AddTo(menu);
+            backButton.AddListener(MouseButtons.Left, InputState.Pressed, () =>
             {
                 SoundManager.AddSound(mClickSound);
-                ScreenManager.Remove(mHudScreen);
                 ScreenManager.Remove(this);
                 IsVisible = false;
             });
@@ -116,11 +152,14 @@ namespace LevelEditor.Screen
 
         public void Render(GameTime time)
         {
+
             if (!IsVisible)
             {
                 return;
             }
-
+            mSpriteBatch.Begin();
+            mSpriteBatch.Draw(mBackgroundImage, new Rectangle(0, 0, mScreenWidth, mScreenHeight), Color.White);
+            mSpriteBatch.End();
             foreach (var menu in mMenuList)
             {
                 menu.Render(mSpriteBatch);

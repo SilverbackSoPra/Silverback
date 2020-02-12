@@ -19,10 +19,10 @@ namespace LevelEditor.Engine.Loader
     /// <summary>
     /// Is able to load meshes and animations.
     /// </summary>
-    internal sealed class ModelLoader
+    public sealed class ModelLoader
     {
 
-        private const float BoundingRectangleBias = 1.0f;
+        private const float BoundingRectangleBias = 1.5f;
         private readonly GraphicsDevice mGraphicsDevice;
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace LevelEditor.Engine.Loader
                 meshSorted[index].Add(mesh);
 
                 vertexCount += mesh.VertexCount;
-                indexCount += (mesh.FaceCount * 3);
+                indexCount += mesh.FaceCount * 3;
                 bonesCount += mesh.BoneCount;
 
             }
@@ -279,8 +279,8 @@ namespace LevelEditor.Engine.Loader
                         //meshData.mVerticesExt[i].BoneIndex = meshData.mVerticesExt[i - 1].BoneIndex;
                     }
                     else {
-                        meshData.mVerticesExt[i].BoneWeights *= (1.0f / (vertex.X + vertex.Y + vertex.Z +
-                                                       vertex.W));
+                        meshData.mVerticesExt[i].BoneWeights *= 1.0f / (vertex.X + vertex.Y + vertex.Z +
+                                                                        vertex.W);
                     }
 
                 }
@@ -327,11 +327,13 @@ namespace LevelEditor.Engine.Loader
         {
 
             var material = new Material();
+            material.mGraphicsDevice = mGraphicsDevice;
 
             if (assimpMaterial.HasTextureDiffuse)
             {
                 var diffuseMapStream = new FileStream(directory + assimpMaterial.TextureDiffuse.FilePath, FileMode.Open);
                 material.mDiffuseMap = Texture2D.FromStream(mGraphicsDevice, diffuseMapStream);
+                material.DiffuseMapStream = diffuseMapStream;
                 diffuseMapStream.Close();
             }
 

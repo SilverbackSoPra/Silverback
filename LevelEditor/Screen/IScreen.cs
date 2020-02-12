@@ -9,7 +9,7 @@ namespace LevelEditor.Screen
     /// The interface is used to implement a screen which is then organized by the screen manager.
     /// When a screen isn't needed anymore it should remove itself from the screen manager.
     /// </summary>
-    interface IScreen
+    public interface IScreen
     {
 
         /// <summary>

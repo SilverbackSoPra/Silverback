@@ -1,9 +1,11 @@
-﻿using LevelEditor.Engine.Helper;
+﻿using System;
+using LevelEditor.Engine.Helper;
 using Microsoft.Xna.Framework;
 
 namespace LevelEditor.Engine.Animation
 {
-    internal sealed class BoneKeyFrames
+    [Serializable()]
+    public sealed class BoneKeyFrames
     {
 
         public struct PositionKey
@@ -24,9 +26,9 @@ namespace LevelEditor.Engine.Animation
             public float mTime;
         }
 
-        public readonly PositionKey[] mPositionKeys;
-        public readonly RotationKey[] mRotationKeys;
-        public readonly ScaleKey[] mScaleKeys;
+        public PositionKey[] mPositionKeys;
+        public RotationKey[] mRotationKeys;
+        public ScaleKey[] mScaleKeys;
 
         public BoneKeyFrames(int positionKeyCount, int rotationKeyCount, int scaleKeyCount)
         {
@@ -36,6 +38,9 @@ namespace LevelEditor.Engine.Animation
             mScaleKeys = new ScaleKey[scaleKeyCount];
 
         }
+
+        private BoneKeyFrames()
+        { }
 
         public void Interpolate(ref Vector3 position, ref Quaternion rotation, ref Vector3 scale, float animationTime)
         {

@@ -20,13 +20,14 @@ namespace LevelEditor.Sound
         LinearDistance,
         LinearDistanceClamped,
         InverseDistance,
-        InverseDistanceClamped
+        InverseDistanceClamped,
+        None
     }
 
     /// <summary>
     /// Used to manage the sounds and background music.
     /// </summary>
-    internal sealed class SoundManager
+    public sealed class SoundManager
     {
         private AudioDistanceModel DistanceModel
         {
@@ -44,6 +45,7 @@ namespace LevelEditor.Sound
                     case AudioDistanceModel.LinearDistanceClamped: model = ALDistanceModel.LinearDistanceClamped; break;
                     case AudioDistanceModel.InverseDistance: model = ALDistanceModel.InverseDistance; break;
                     case AudioDistanceModel.InverseDistanceClamped: model = ALDistanceModel.InverseDistanceClamped; break;
+                    case AudioDistanceModel.None: model = ALDistanceModel.None; break;
                     default: model = ALDistanceModel.LinearDistance; break;
                 }
                 AL.DistanceModel(model);
@@ -54,13 +56,14 @@ namespace LevelEditor.Sound
         private bool mAudioDeviceAvailable = true;
 
         private readonly List<Fader> mMusic;
+        private readonly List<AudioSource> mAudioSources;
         private AudioDistanceModel mDistanceModel;
 
         public SoundManager()
         {
 
             mMusic = new List<Fader>();
-            SoundEffect.DistanceScale = .025f;
+            mAudioSources = new List<AudioSource>();
             try
             {
                 mAudioContext = new AudioContext();
@@ -106,6 +109,18 @@ namespace LevelEditor.Sound
             instance.Play();
         }
 
+        public void AddSound(AudioSource audioSource)
+        {
+            mAudioSources.Add(audioSource);
+            audioSource.Play();
+        }
+
+        public void RemoveSound(AudioSource audioSource)
+        {
+            mAudioSources.Remove(audioSource);
+            audioSource.Stop();
+        }
+
         public void Update(GameTime gameTime)
         {
 
@@ -146,17 +161,22 @@ namespace LevelEditor.Sound
             var field = new[] {dir.X, dir.Y, dir.Z, up.X, up.Y, up.Z};
             AL.Listener(ALListenerfv.Orientation, ref field);
 
+            foreach (var audioSource in mAudioSources)
+            {
+                audioSource.VolumeMultiplier = Options.SoundEffectVolume / 100.0f;
+            }
+
             foreach (var actorbatch in scene.mActorBatches)
             {
 
                 foreach (var actor in actorbatch.mActors)
                 {
 
-                    foreach (var source in actor.mAudioSources)
+                    foreach (var audioSource in actor.mAudioSources)
                     {
 
-                        source.Location = actor.ModelMatrix.Translation;
-                        source.Volume = Options.SoundEffectVolume / 100.0f;
+                        audioSource.Location = actor.ModelMatrix.Translation;
+                        audioSource.VolumeMultiplier = Options.SoundEffectVolume / 100.0f;
 
                     }
 
